@@ -6,5 +6,5 @@ dependencies {
     compileOnly(rootProject.libs.auraskills) // AuraSkills
     compileOnly(rootProject.libs.customcrops) // CustomCrops
     compileOnly(rootProject.libs.customfishing) // CustomFishing
-    compileOnly(files("libs/EnchantmentSlots-4.4.6.jar")) // EnchantmentSlots
+    compileOnly(files("libs/EnchantmentSlots-4.6.10.jar")) // EnchantmentSlots
 }
