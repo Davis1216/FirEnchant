@@ -33,18 +33,11 @@ abstract class AbstractConfigFile(
 
     // 子类实现
     protected abstract fun loadConfig()
-    protected abstract fun loadLatePartConfig()
-
-    // 加载延迟配置部分
-    fun loadLatePart() {
-        loadLatePartConfig()
-    }
 
     // 重新加载配置
     fun reload() {
         initFile()
         loadConfig()
-        loadLatePartConfig()
     }
 
     // 自定义属性委托

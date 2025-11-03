@@ -92,10 +92,7 @@ class RepairTableConfig private constructor():
 
         REPAIR_MAGNIFICATION_RULE = config().getMapList("repair-rule.magnification-rule")
             .associateTo(LinkedHashMap()) { (it["permission"] as String) to (it["magnification"] as? Double ?: 1.0) }
-    }
 
-    // 等待注册表完成后延迟加载的部分
-    override fun loadLatePartConfig() {
         /*菜单设置*/
         MENU_TITLE_DENY = config().getString("menu-setting.title-deny", "Repair DENY Menu")!!
         MENU_TITLE_ACCEPT = config().getString("menu-setting.title-accept", "Repair ACCEPT Menu")!!

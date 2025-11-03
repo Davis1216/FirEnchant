@@ -167,10 +167,7 @@ class EnchantingTableConfig private constructor():
             RENEWAL_BOOK_ITEM_PROVIDER = config().getString("renewal-book.hooked-plugin", null)
             RENEWAL_BOOK_ITEM_ID = config().getString("renewal-book.hooked-id", null)
         }
-    }
 
-    // 等待注册表完成后延迟加载的部分
-    override fun loadLatePartConfig() {
         // 自定义物品
         config().getConfigurationSection("menu-setting.custom-items")?.let { customItemsSection ->
             val customItems = mutableMapOf<Char, Pair<ItemStack?, List<ConfigActionTemplate>>>() // 创建结果列表

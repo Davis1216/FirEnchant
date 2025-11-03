@@ -32,6 +32,4 @@ class SettingsConfig private constructor():
         DATABASE_MYSQL_PASSWORD = config().getString("database.mysql.properties.password", "root")!!
     }
 
-    override fun loadLatePartConfig() {}
-
 }

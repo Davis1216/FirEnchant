@@ -5,6 +5,8 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.bukkit.Bukkit
 import org.bukkit.plugin.java.JavaPlugin
 import top.catnies.firenchantkt.command.CommandManager
@@ -61,16 +63,9 @@ class FirEnchantPlugin: JavaPlugin(), FirEnchant, CoroutineScope {
 
     override fun onEnable() {
         InvUI.getInstance().setPlugin(this) // GUI依赖库
-
-        NMSHandlerHolder.instance // NMS
-        ConfigManager.instance // 配置文件管理器
-        TranslationManager.instance // 语言管理器
-        CommandManager.instance // 命令管理器
-        ListenerManger.instance // 事件监听管理器
-        FirConnectionManager.getInstance() // 数据库链接控制器
-        FirCacheManager.getInstance() // 缓存管理器
-        registerLateInitListener()
-
+        this.registerLateInitListener()     // 延时初始化器
+        CommandManager.instance             // 命令管理器
+        NMSHandlerHolder.instance           // NMS管理器
         logger.info("FirEnchant Plugin Enabled!")
     }
 
@@ -130,27 +125,22 @@ class FirEnchantPlugin: JavaPlugin(), FirEnchant, CoroutineScope {
         }
         isInitializedRegistry = true
 
-        // 1.关联插件集成管理器
-        IntegrationManager.instance
+        FirItemProviderRegistry.instance        // 物品集成注册表
+        FirConditionRegistry.instance           // 条件注册表
+        FirActionRegistry.instance              // 动作注册表
+        FirEnchantmentManager.instance          // 系统魔咒管理器
+        TranslationManager.instance             // 语言管理器
+        ConfigManager.instance                  // 配置文件管理器
 
-        // 2.动作条件注册表
-        FirConditionRegistry.instance
-        FirActionRegistry.instance
+        ListenerManger.instance                 // 事件监听器 (依赖: ConfigManager)
+        FirConnectionManager.getInstance()      // 数据库链接控制器 (依赖: ConfigManager)
+        FirCacheManager.getInstance()           // 玩家缓存管理器
 
-        // 3.物品集成注册表
-        FirItemProviderRegistry.instance
-
-        // 4.系统魔咒管理器 (依赖3)
-        FirEnchantmentManager.instance
-
-        // 5.加载延迟配置部分(依赖1234)
-        ConfigManager.instance.loadConfigsLatePart()
-
-        // 6.物品注册表(依赖2345)
-        FirAnvilItemRegistry.instance // 铁砧物品注册表
-        FirRepairTableItemRegistry.instance // 修复桌物品注册表
-        FirEnchantingTableRegistry.instance // 附魔台物品注册表
-        FirBrokenGear.instance // 破损物品功能注册
+        IntegrationManager.instance             // 插件集成管理器
+        FirAnvilItemRegistry.instance           // 铁砧物品注册表
+        FirRepairTableItemRegistry.instance     // 修复桌物品注册表
+        FirEnchantingTableRegistry.instance     // 附魔台物品注册表
+        FirBrokenGear.instance                  // 破损物品注册表
     }
 
 

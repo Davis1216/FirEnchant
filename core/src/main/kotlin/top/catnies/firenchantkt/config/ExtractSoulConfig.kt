@@ -52,10 +52,7 @@ class ExtractSoulConfig private constructor():
             Bukkit.getConsoleSender().sendTranslatableComponent(RESOURCE_MENU_STRUCTURE_ERROR, fileName) }
         MENU_INPUT_SLOT = config().getString("menu-setting.input-slot", "I")?.first() ?: 'I'
         MENU_OUTPUT_SLOT = config().getString("menu-setting.output-slot", "O")?.first() ?: 'O'
-    }
 
-    // 等待注册表完成后延迟加载的部分
-    override fun loadLatePartConfig() {
         // 1. 读取配置文件, 尝试构建物品, 尝试构建点击逻辑链并缓存.
         config().getConfigurationSection("menu-setting.custom-items")?.let { customItemsSection ->
             val customItems = mutableMapOf<Char, Pair<ItemStack?, List<ConfigActionTemplate>>>() // 创建结果列表

@@ -57,10 +57,7 @@ class ShowEnchantedBooksConfig private constructor():
         } catch (exception: Exception) {
             Bukkit.getConsoleSender().sendTranslatableComponent(RESOURCE_MENU_STRUCTURE_ERROR, fileName) }
         MENU_CONTENT_SLOT = config().getString("menu-setting.content-slot", "I")?.first() ?: 'I'
-    }
 
-    // 等待注册表完成后延迟加载的部分
-    override fun loadLatePartConfig() {
         MENU_PREPAGE_SLOT = config().getString("menu-setting.previous-page.slot", "P")?.first() ?: 'P'
         MENU_PREPAGE_SLOT_ITEM = config().getConfigurationSection("menu-setting.previous-page")?.let { section ->
             // 使用节点构建物品

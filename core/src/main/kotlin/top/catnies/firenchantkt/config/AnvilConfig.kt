@@ -113,9 +113,7 @@ class AnvilConfig private constructor():
             SLOT_RUNE_ITEM_ID = config().getString("slot-rune.hooked-id")
             SLOT_RUNE_EXP = config().getInt("slot-rune.exp", 12)
         }
-    }
 
-    override fun loadLatePartConfig() {
         /*魔咒之魂*/
         if (ENCHANT_SOUL_ENABLE) {
             val testItem = YamlUtils.tryBuildItem(ENCHANT_SOUL_ITEM_PROVIDER, ENCHANT_SOUL_ITEM_ID, fileName, "enchant-soul")
