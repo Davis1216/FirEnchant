@@ -67,7 +67,9 @@ object GiveEnchantedBookCommand : AbstractCommand() {
 
         val targetResolver = context.getArgument("player", PlayerSelectorArgumentResolver::class.java)
         val players = targetResolver.resolve(context.source)
-        players.forEach { player ->
+        players
+            .filter { context.source.sender != it }
+            .forEach { player ->
             player.giveOrDrop(enchantmentSetting.toItemStack())
             player.sendTranslatableComponent(
                 COMMAND_GIVE_BOOK_ENCHANTMENT_SUCCESS_RECEIVE,
