@@ -205,11 +205,10 @@ class FirEnchantingTableMenu(
     // 添加自定义物品
     private fun addCustomItems(building: Gui.Builder.Normal) {
         customItems.asSequence()
-            .filterNot { it.value.first.nullOrAir() }
-            .filter { getMarkCount(it.key) > 0 }
-            .forEach { (char, pair) ->
-                val menuCustomItem = MenuCustomItem({ s -> pair.first!! }, pair.second)
-                building.addIngredient(char, menuCustomItem)
+            .filter { getMarkCount(it.slot) > 0 }
+            .forEach { data ->
+                val menuCustomItem = MenuCustomItem({ _ -> data.item.renderItem(player) }, data.action)
+                building.addIngredient(data.slot, menuCustomItem)
             }
     }
 

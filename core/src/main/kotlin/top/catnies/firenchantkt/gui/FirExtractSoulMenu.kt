@@ -18,6 +18,7 @@ import xyz.xenondevs.invui.gui.structure.Structure
 import xyz.xenondevs.invui.inventory.VirtualInventory
 import xyz.xenondevs.invui.inventory.event.UpdateReason
 import xyz.xenondevs.invui.item.Click
+import xyz.xenondevs.invui.item.ItemProvider
 import xyz.xenondevs.invui.item.impl.SimpleItem
 import xyz.xenondevs.invui.window.Window
 import java.util.function.Consumer
@@ -36,7 +37,7 @@ class FirExtractSoulMenu(
     val inputSlot = config.MENU_INPUT_SLOT
     val outputSlot = config.MENU_OUTPUT_SLOT
     val customItems = config.MENU_CUSTOM_ITEMS
-    val resultItem = config.MENU_RESULT_ITEM!!.clone()
+    val resultItem = config.MENU_RESULT_ITEM
     val actions = config.MENU_RESULT_ITEM_CLICK_ACTIONS
 
     lateinit var gui: Gui
@@ -44,7 +45,6 @@ class FirExtractSoulMenu(
     lateinit var inputInventory: VirtualInventory
     lateinit var outputItem: SimpleItem
 
-    // 关闭菜单时触发
     var closeHandlers: MutableList<Runnable> = mutableListOf()
 
     // 创建并且打开菜单
@@ -95,35 +95,35 @@ class FirExtractSoulMenu(
     // 添加自定义物品
     private fun addCustomItems(building: Gui.Builder.Normal) {
         customItems
-            .filter { getMarkCount(it.key) > 0 }
-            .filterNot { it.value.first.nullOrAir() }
-            .forEach { (char, pair) ->
-                val menuCustomItem = MenuCustomItem({ s -> pair.first!! }, pair.second)
-                building.addIngredient(char, menuCustomItem)
+            .filter { getMarkCount(it.slot) > 0 }
+            .forEach { data ->
+                val menuCustomItem = MenuCustomItem({ _ -> data.item.renderItem(player) }, data.action)
+                building.addIngredient(data.slot, menuCustomItem)
             }
     }
 
     // 获取输出物品
     private fun buildOutputItem() {
-        outputItem = SimpleItem(
-            { s: String? ->
-                // 检查合法附魔书数量
-                val count = inputInventory.count { !it.nullOrAir() && FirEnchantmentSettingFactory.fromItemStack(it) != null }
-                // 设置结果物品
-                if (count == 0) return@SimpleItem ItemStack(Material.AIR)
-                else return@SimpleItem resultItem.apply {amount = count}
-            }
-        ) { click: Click ->
+        val provider = ItemProvider {
+            // 检查合法附魔书数量
+            val count = inputInventory.count { !it.nullOrAir() && FirEnchantmentSettingFactory.fromItemStack(it) != null }
+            // 设置结果物品
+            if (count == 0) return@ItemProvider ItemStack(Material.AIR)
+            if (resultItem == null) return@ItemProvider ItemStack(Material.AIR)
+            else return@ItemProvider resultItem.renderItem(player).apply {amount = count}
+        }
+        val clickHandler = Consumer<Click> { click ->
             // 获取有效的附魔书
+            if (resultItem == null) return@Consumer
             val preRemoved = inputInventory.items.filter { !it.nullOrAir() && FirEnchantmentSettingFactory.fromItemStack(it) != null }
             val removedCount = preRemoved.size
             if (removedCount > 0) {
                 // 结果物品
-                val resultItem = resultItem.apply {amount = removedCount}
+                val resultItem = resultItem.renderItem(player).apply {amount = removedCount}
                 // 触发事件
                 val event = ExtractSoulEvent(player, preRemoved, mutableListOf(resultItem))
                 Bukkit.getPluginManager().callEvent(event)
-                if (event.isCancelled) return@SimpleItem
+                if (event.isCancelled) return@Consumer
                 // 扣除物品
                 inputInventory.removeIf(UpdateReason.SUPPRESSED) { event.removedEnchantedBooks.contains(it) }
                 // 给予物品
@@ -140,6 +140,7 @@ class FirExtractSoulMenu(
                 outputItem.notifyWindows()
             }
         }
+        outputItem = SimpleItem( provider, clickHandler)
     }
 
     // 统计 Structure 里有多少个某种 Slot 字符

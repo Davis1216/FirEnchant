@@ -6,6 +6,7 @@ import io.papermc.paper.datacomponent.item.ItemLore
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.language.tags.FirEnchantTag
+import top.catnies.firenchantkt.language.tags.PlaceholderTag
 import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.MessageUtils.convertLegacyColorToMiniMessage
 import top.catnies.firenchantkt.util.MessageUtils.parsePlaceholderAPI

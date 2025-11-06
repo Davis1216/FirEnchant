@@ -27,6 +27,7 @@ object MessageConstants {
     const val RESOURCE_HOOK_ITEM_NOT_FOUND = "resource.hook.item.not_found"
     const val RESOURCE_MENU_STRUCTURE_ERROR = "resource.menu.structure.error"
     const val RESOURCE_VALUE_INVALID_ERROR = "resource.value.invalid.error"
+    const val RESOURCE_VALUE_NOT_FOUND = "resource.value.not_found"
 
     const val PLUGIN_COMPATIBILITY_HOOK_SUCCESS = "plugin.compatibility.hook.success"
     const val PLUGIN_FUNCTION_NOT_ENABLED = "plugin.function.not_enabled"

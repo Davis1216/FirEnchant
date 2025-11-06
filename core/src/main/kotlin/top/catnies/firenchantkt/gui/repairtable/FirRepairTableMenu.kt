@@ -39,6 +39,7 @@ import xyz.xenondevs.invui.gui.structure.Markers
 import xyz.xenondevs.invui.gui.structure.Structure
 import xyz.xenondevs.invui.inventory.VirtualInventory
 import xyz.xenondevs.invui.inventory.event.UpdateReason
+import xyz.xenondevs.invui.item.Click
 import xyz.xenondevs.invui.item.Item
 import xyz.xenondevs.invui.item.ItemProvider
 import xyz.xenondevs.invui.item.impl.SimpleItem
@@ -63,12 +64,9 @@ class FirRepairTableMenu(
     val structureArray = config.MENU_STRUCTURE_ARRAY
     val inputSlot = config.MENU_INPUT_SLOT
     val outputSlot = config.MENU_OUTPUT_SLOT
-    val repairSlot = config.MENU_REPAIR_SLOT
-    val repairSlotItem = config.MENU_REPAIR_SLOT_ITEM
-    val previousPageSlot = config.MENU_PREPAGE_SLOT
-    val previousPageItem = config.MENU_PREPAGE_SLOT_ITEM
-    val nextPageSlot = config.MENU_NEXTPAGE_SLOT
-    val nextPageItem = config.MENU_NEXTPAGE_SLOT_ITEM
+    val repairItem = config.MENU_REPAIR_ITEM!!
+    val previousPageItem = config.MENU_PREVIOUS_PAGE_ITEM
+    val nextPageItem = config.MENU_NEXT_PAGE_ITEM
     val customItems = config.MENU_CUSTOM_ITEMS
 
     val outputUpdateTime = config.MENU_OUTPUT_UPDATE_TIME
@@ -156,15 +154,17 @@ class FirRepairTableMenu(
 
     // 添加确认修复按钮
     private fun buildConfirmItem() {
-        confirmBottom = SimpleItem({ s: String? ->
-            if (!showBottom) return@SimpleItem ItemStack(Material.AIR)
-            else return@SimpleItem repairSlotItem!!.first!!.clone().apply { replacePlaceholder(mutableMapOf("cost_time" to "${repairTime!! / 1000}")) }
-        }) { click ->
-            if (!showBottom) return@SimpleItem // 无显示时不做任何操作
+        val itemProvider = ItemProvider {
+            if (!showBottom) return@ItemProvider ItemStack(Material.AIR)
+            return@ItemProvider repairItem.item.renderItem(player, mutableMapOf("cost_time" to "${repairTime!! / 1000}"))
+        }
+        val clickHandler = Consumer<Click> { click ->
+            if (!showBottom) return@Consumer // 无显示时不做任何操作
+
             // 如果超出了队列上限
             if (repairList.size >= maxRepairItemQueueSize) {
                 player.sendTranslatableComponent(MessageConstants.REPAIR_TABLE_REPAIR_ITEM_QUEUE_FULL)
-                return@SimpleItem
+                return@Consumer
             }
 
             // 执行动作
@@ -172,16 +172,16 @@ class FirRepairTableMenu(
             args["player"] = player
             args["clickType"] = click.clickType
             args["event"] = click.event
-            repairSlotItem?.second?.forEach { it.executeIfAllowed(args) }
+            repairItem.action.forEach { it.executeIfAllowed(args) }
             // 执行修复功能
-            val inputItem = inputInventory.items.first() ?: return@SimpleItem
-            if (!brokenGear.isBrokenGear(inputItem)) return@SimpleItem
+            val inputItem = inputInventory.items.first() ?: return@Consumer
+            if (!brokenGear.isBrokenGear(inputItem)) return@Consumer
             val repairTable = ItemRepairTable(player.uniqueId, inputItem.serializeToBytes(), repairTime!!)
 
             // 广播事件
             val repairEvent = BrokenItemConfirmRepairEvent(player, repairTable)
             Bukkit.getPluginManager().callEvent(repairEvent)
-            if (repairEvent.isCancelled) return@SimpleItem
+            if (repairEvent.isCancelled) return@Consumer
 
             // 将物品删除
             inputInventory.removeIf(UpdateReason.SUPPRESSED) { !it.nullOrAir() }
@@ -196,61 +196,60 @@ class FirRepairTableMenu(
             repairTime = null
             confirmBottom.notifyWindows()
         }
+        confirmBottom = SimpleItem(itemProvider, clickHandler)
     }
 
     // 上一页 和 下一页
     private fun buildPageItem() {
-        previousPageBottom = MenuPageItem(false, previousPageItem!!.second) { s ->
-            if (gui.currentPage == 0) return@MenuPageItem ItemStack.empty()
+        previousPageItem?.let {
+            previousPageBottom = MenuPageItem(false, it.action) { s ->
+                if (gui.currentPage == 0) return@MenuPageItem ItemStack.empty()
 
-            val itemStack = previousPageItem.first!!.clone()
-            itemStack.replacePlaceholder(
-                mutableMapOf(
+                val itemStack = it.item.renderItem(player, mutableMapOf(
                     "currentPage" to "${gui.currentPage}",
                     "pageAmount" to "${gui.pageAmount}",
                     "previousPage" to "${max(0, gui.currentPage - 1)}",
                     "nextPage" to "${min(gui.pageAmount, gui.currentPage + 1)}"
-                )
-            )
-            return@MenuPageItem itemStack
+                ))
+                return@MenuPageItem itemStack
+            }
         }
 
-        nextPageBottom = MenuPageItem(true, nextPageItem!!.second) { s ->
-            if (gui.pageAmount == 0) return@MenuPageItem ItemStack.empty() // 总页数为0代表目前没有正在修复的装备
-            if (gui.currentPage == gui.pageAmount - 1) return@MenuPageItem ItemStack.empty() // 如果当前页数 = (总页数 - 1)就代表是最后一页
+        nextPageItem?.let {
+            nextPageBottom = MenuPageItem(true, it.action) { s ->
+                if (gui.pageAmount == 0) return@MenuPageItem ItemStack.empty() // 总页数为0代表目前没有正在修复的装备
+                if (gui.currentPage == gui.pageAmount - 1) return@MenuPageItem ItemStack.empty() // 如果当前页数 = (总页数 - 1)就代表是最后一页
 
-            val itemStack = nextPageItem.first!!.clone()
-            itemStack.replacePlaceholder(
-                mutableMapOf(
+                val itemStack = nextPageItem.item.renderItem(player, mutableMapOf(
                     "currentPage" to "${gui.currentPage}",
                     "pageAmount" to "${gui.pageAmount}",
                     "previousPage" to "${max(0, gui.currentPage - 1)}",
                     "nextPage" to "${min(gui.pageAmount, gui.currentPage + 1)}"
-                )
-            )
-            return@MenuPageItem itemStack
+                ))
+                return@MenuPageItem itemStack
+            }
         }
     }
 
     // 创建 GUI & Window
     private fun buildGuiAndWindow() {
-        gui = PagedGui.items()
-            .setStructure(Structure(*structureArray))
-            .addIngredient(outputSlot, Markers.CONTENT_LIST_SLOT_HORIZONTAL)
-            .addIngredient(inputSlot, inputInventory)
-            .addIngredient(repairSlot, confirmBottom)
-            .addIngredient(previousPageSlot, previousPageBottom)
-            .addIngredient(nextPageSlot, nextPageBottom)
-            .setContent(repairList) // 翻页内容
-            // 自定义物品
-            .also {
-                customItems.filter { customItem -> getMarkCount(customItem.key) > 0 }
-                    .forEach { (char, pair) ->
-                        val menuCustomItem = MenuCustomItem({ s -> pair.first!! }, pair.second)
-                        it.addIngredient(char, menuCustomItem)
-                    }
+        val builder = PagedGui.items().setStructure(Structure(*structureArray))
+        // 内容
+        builder.addIngredient(outputSlot, Markers.CONTENT_LIST_SLOT_HORIZONTAL)
+        builder.setContent(repairList)
+        // 输入槽位
+        builder.addIngredient(inputSlot, inputInventory)
+        // 确认按钮
+        builder.addIngredient(repairItem.slot, confirmBottom)
+        // 翻页按钮
+        previousPageItem?.let { builder.addIngredient(it.slot, previousPageBottom) }
+        nextPageItem?.let { builder.addIngredient(it.slot, nextPageBottom) }
+        // 自定义物品
+        customItems.filter { customItem -> getMarkCount(customItem.slot) > 0 }
+            .forEach { data ->
+                val menuCustomItem = MenuCustomItem({ _ -> data.item.renderItem(player) }, data.action)
+                builder.addIngredient(data.slot, menuCustomItem)
             }
-            .build()
 
         // 如果关闭菜单则返回输入框里的所有物品.
         closeHandlers.add {

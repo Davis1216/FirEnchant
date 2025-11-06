@@ -31,12 +31,10 @@ class FirShowEnchantedBooksMenu(
     val title = config.MENU_TITLE
     val structureArray = config.MENU_STRUCTURE_ARRAY
     val contentSlot = config.MENU_CONTENT_SLOT
-    val previousPageSlot = config.MENU_PREPAGE_SLOT
-    val previousPageItem = config.MENU_PREPAGE_SLOT_ITEM
-    val nextPageSlot = config.MENU_NEXTPAGE_SLOT
-    val nextPageItem = config.MENU_NEXTPAGE_SLOT_ITEM
+    val previousPageItem = config.PREVIOUS_PAGE_ITEM
+    val nextPageItem = config.NEXT_PAGE_ITEM
     val customItems = config.MENU_CUSTOM_ITEMS
-    val enchantedBookList = config.SHOW_ENCHANTEDBOOKS
+    val enchantedBooks = config.ENCHANTED_BOOKS
 
     /*构建时对象*/
     lateinit var gui: PagedGui<Item>
@@ -62,55 +60,58 @@ class FirShowEnchantedBooksMenu(
 
     // 上一页 和 下一页
     private fun buildPageItem() {
-        previousPageBottom = MenuPageItem(false, previousPageItem!!.second) { s ->
-            if (gui.currentPage == 0) return@MenuPageItem ItemStack.empty()
+        previousPageItem?.let {
+            previousPageBottom = MenuPageItem(false, it.action) { s ->
+                if (gui.currentPage == 0) return@MenuPageItem ItemStack.empty()
 
-            val itemStack = previousPageItem.first!!.clone()
-            itemStack.replacePlaceholder(
-                mutableMapOf(
-                    "currentPage" to "${gui.currentPage}",
-                    "pageAmount" to "${gui.pageAmount}",
-                    "previousPage" to "${max(0, gui.currentPage - 1)}",
-                    "nextPage" to "${min(gui.pageAmount, gui.currentPage + 1)}"
+                val itemStack = previousPageItem.item.renderItem(player)
+                itemStack.replacePlaceholder(
+                    mutableMapOf(
+                        "currentPage" to "${gui.currentPage}",
+                        "pageAmount" to "${gui.pageAmount}",
+                        "previousPage" to "${max(0, gui.currentPage - 1)}",
+                        "nextPage" to "${min(gui.pageAmount, gui.currentPage + 1)}"
+                    )
                 )
-            )
-            return@MenuPageItem itemStack
+                return@MenuPageItem itemStack
+            }
         }
 
-        nextPageBottom = MenuPageItem(true, nextPageItem!!.second) { s ->
-            if (gui.pageAmount == 0) return@MenuPageItem ItemStack.empty() // 总页数为0代表目前没有正在修复的装备
-            if (gui.currentPage == gui.pageAmount - 1) return@MenuPageItem ItemStack.empty() // 如果当前页数 = (总页数 - 1)就代表是最后一页
+        nextPageItem?.let {
+            nextPageBottom = MenuPageItem(true, it.action) { s ->
+                if (gui.pageAmount == 0) return@MenuPageItem ItemStack.empty() // 总页数为0代表目前没有正在修复的装备
+                if (gui.currentPage == gui.pageAmount - 1) return@MenuPageItem ItemStack.empty() // 如果当前页数 = (总页数 - 1)就代表是最后一页
 
-            val itemStack = nextPageItem.first!!.clone()
-            itemStack.replacePlaceholder(
-                mutableMapOf(
-                    "currentPage" to "${gui.currentPage}",
-                    "pageAmount" to "${gui.pageAmount}",
-                    "previousPage" to "${max(0, gui.currentPage - 1)}",
-                    "nextPage" to "${min(gui.pageAmount, gui.currentPage + 1)}"
+                val itemStack = nextPageItem.item.renderItem(player)
+                itemStack.replacePlaceholder(
+                    mutableMapOf(
+                        "currentPage" to "${gui.currentPage}",
+                        "pageAmount" to "${gui.pageAmount}",
+                        "previousPage" to "${max(0, gui.currentPage - 1)}",
+                        "nextPage" to "${min(gui.pageAmount, gui.currentPage + 1)}"
+                    )
                 )
-            )
-            return@MenuPageItem itemStack
+                return@MenuPageItem itemStack
+            }
         }
     }
 
     // 创建 GUI & Window
     private fun buildGuiAndWindow() {
-        gui = PagedGui.items()
-            .setStructure(Structure(*structureArray))
-            .addIngredient(contentSlot, Markers.CONTENT_LIST_SLOT_HORIZONTAL)
-            .addIngredient(previousPageSlot, previousPageBottom)
-            .addIngredient(nextPageSlot, nextPageBottom)
-            .setContent(enchantedBookList.map { SimpleItem(it) }) // 翻页内容
-            // 自定义物品
-            .also {
-                customItems.filter { customItem -> getMarkCount(customItem.key) > 0 }
-                    .forEach { (char, pair) ->
-                        val menuCustomItem = MenuCustomItem({ s -> pair.first!! }, pair.second)
-                        it.addIngredient(char, menuCustomItem)
-                    }
+        val builder = PagedGui.items().setStructure(Structure(*structureArray))
+        // 翻页按钮
+        previousPageItem?.let { builder.addIngredient(it.slot, previousPageBottom) }
+        nextPageItem?.let { builder.addIngredient(it.slot, nextPageBottom) }
+        // 菜单内容
+        builder.addIngredient(contentSlot, Markers.CONTENT_LIST_SLOT_HORIZONTAL)
+        builder.setContent(enchantedBooks.map { SimpleItem(it.toItemStack()) })
+        // 自定义物品
+        customItems.filter { customItem -> getMarkCount(customItem.slot) > 0 }
+            .forEach { data ->
+                val menuCustomItem = MenuCustomItem({ _ -> data.item.renderItem(player) }, data.action)
+                builder.addIngredient(data.slot, menuCustomItem)
             }
-            .build()
+        gui = builder.build()
 
         window = Window.single {
             it.setViewer(player)

@@ -20,18 +20,6 @@ import kotlin.reflect.full.findAnnotation
 
 object ConfigParser {
 
-
-    // 从配置文件节点解析物品
-    fun parseItemFromConfig(section: ConfigurationSection, fileName: String = "none", node: String = "none"): ItemStack? {
-        // 必需的参数:
-        val hookedPlugin = section.getString("hooked-plugin") ?: "null"
-        val hookedId = section.getString("hooked-id") ?: "null"
-        val item = YamlUtils.tryBuildItem(hookedPlugin, hookedId, fileName, node) ?: return null
-
-        // 添加额外属性
-        return parseItemFromConfigWithBaseItem(item, section, fileName, node)
-    }
-
     // 从配置文件节点解析, 装饰物品属性
     fun parseItemFromConfigWithBaseItem(baseItem: ItemStack, section: ConfigurationSection, fileName: String = "none", node: String = "none"): ItemStack {
         val originalName = baseItem.getData(DataComponentTypes.ITEM_NAME)
@@ -64,7 +52,7 @@ object ConfigParser {
     fun parseActionTemplate(config: ConfigurationSection, fileName: String = "none", node: String = "none"): ConfigActionTemplate? {
         val type = config.getString("type") ?: return null
         val actionClass = FirEnchantAPI.actionRegistry().getAction(type) ?: run {
-            Bukkit.getConsoleSender().sendTranslatableComponent(MessageConstants.CONFIG_ACTION_TYPE_UNKNOWN, type)
+            Bukkit.getConsoleSender().sendTranslatableComponent(MessageConstants.CONFIG_ACTION_TYPE_UNKNOWN, fileName, node, type)
             return null
         }
 
@@ -95,7 +83,7 @@ object ConfigParser {
     fun parseConditionTemplate(config: ConfigurationSection, fileName: String = "none", node: String = "none"): ConfigConditionTemplate? {
         val type = config.getString("type") ?: return null
         val conditionClass = FirEnchantAPI.conditionRegistry().getCondition(type) ?: run {
-            Bukkit.getConsoleSender().sendTranslatableComponent(MessageConstants.CONFIG_CONDITION_TYPE_UNKNOWN, type)
+            Bukkit.getConsoleSender().sendTranslatableComponent(MessageConstants.CONFIG_CONDITION_TYPE_UNKNOWN, fileName, node, type)
             return null
         }
 

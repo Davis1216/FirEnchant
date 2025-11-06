@@ -25,12 +25,13 @@ resource.hook.item_provider.not_found: "<#96f896>[FirEnchant] <red>在 <arg:0> �
 resource.hook.item.not_found: "<#96f896>[FirEnchant] <red>在 <arg:0> 配置文件中 <arg:1> 指定的物品ID <arg:2> 不存在，请修正后再试。</red>"
 resource.menu.structure.error: "<#96f896>[FirEnchant] <red>在 <arg:0> 配置文件中设置的菜单结构错误，请修正后再试。</red>"
 resource.value.invalid.error: "<#96f896>[FirEnchant] <red>在 <arg:0> 配置文件中 <arg:1> 节点设置的值是非法的，请修正后再试。</red>"
+resource.value.not_found: "<#96f896>[FirEnchant] <red>在 <arg:0> 配置文件中 <arg:1> 节点是必须要设置的，请修正后再试。</red>"
 
 plugin.compatibility.hook.success: "<#96f896>[FirEnchant] <#cef8f5>检查到服务器存在插件 <arg:0> ，已进行关联兼容。"
 plugin.function.not_enabled: "<#96f896>[FirEnchant] <#cef8f5>服务器暂未开启此功能，或此功能配置存在错误配置被强制关闭，如需开启请修改检查配置文件 '<arg:0>' 修正后再尝试。"
 
-config.action.type.unknown: "<#96f896>[FirEnchant] <red>未知的动作类型 <arg:0>，该动作将被忽略。</red>"
-config.condition.type.unknown: "<#96f896>[FirEnchant] <red>未知的条件类型 <arg:0>，该条件将被忽略。</red>"
+config.action.type.unknown: "<#96f896>[FirEnchant] <red>在配置文件 <arg:0> 中自定义物品 '<arg:1>' 的动作配置无效：未知的动作类型 <arg:2>，该动作将被忽略。</red>"
+config.condition.type.unknown: "<#96f896>[FirEnchant] <red>在配置文件 <arg:0> 中自定义物品 '<arg:1>' 的条件配置无效：未知的条件类型 <arg:2>，该条件将被忽略。</red>"
 config.action.invalid.args: "<#96f896>[FirEnchant] <red>在配置文件 <arg:0> 中自定义物品 '<arg:1>' 的动作配置无效：缺少必需参数 <arg:2>。</red>"
 config.condition.invalid.args: "<#96f896>[FirEnchant] <red>在配置文件 <arg:0> 中自定义物品 '<arg:1>' 的条件配置无效：缺少必需参数 <arg:2>。</red>"
 config.action.runtime.args.cast_fail: "<#96f896>[FirEnchant] <red>在执行动作时遇到了错误，您在配置文件填写的动作 '<arg:0>' 的参数 '<arg:1>' 可能存在问题，该动作执行失败，这将导致动作被忽略执行。</red>"

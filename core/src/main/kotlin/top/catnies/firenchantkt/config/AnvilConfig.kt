@@ -119,11 +119,13 @@ class AnvilConfig private constructor():
             val testItem = YamlUtils.tryBuildItem(ENCHANT_SOUL_ITEM_PROVIDER, ENCHANT_SOUL_ITEM_ID, fileName, "enchant-soul")
             if (testItem.nullOrAir()) ENCHANT_SOUL_ENABLE = false
         }
+
         /*保护符文*/
         if (PROTECTION_RUNE_ENABLE) {
             val testItem = YamlUtils.tryBuildItem(PROTECTION_RUNE_ITEM_PROVIDER, PROTECTION_RUNE_ITEM_ID, fileName, "protection-rune")
             if (testItem.nullOrAir()) PROTECTION_RUNE_ENABLE = false
         }
+
         /*拓展符文*/
         if (SLOT_RUNE_ENABLE) {
             val testItem = YamlUtils.tryBuildItem(SLOT_RUNE_ITEM_PROVIDER, SLOT_RUNE_ITEM_ID, fileName, "slot-rune")

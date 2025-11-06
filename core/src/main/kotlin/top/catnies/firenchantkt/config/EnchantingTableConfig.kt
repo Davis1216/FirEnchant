@@ -22,6 +22,7 @@ import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
 import top.catnies.firenchantkt.util.ResourceCopyUtils
 import top.catnies.firenchantkt.util.YamlUtils
 import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
+import top.catnies.firenchantkt.util.resource_wrapper.MenuItemData
 import xyz.xenondevs.invui.gui.structure.Structure
 
 class EnchantingTableConfig private constructor():
@@ -54,7 +55,7 @@ class EnchantingTableConfig private constructor():
     var MENU_TITLE_102: String by ConfigProperty("102")
     var MENU_STRUCTURE_ARRAY: Array<String> by ConfigProperty(fallbackMenuStructure)    // 菜单结构
     var MENU_INPUT_SLOT: Char by ConfigProperty('I')                                    // 放入物品的槽位
-    var MENU_CUSTOM_ITEMS: Map<Char, Pair<ItemStack?, List<ConfigActionTemplate>>> by ConfigProperty(emptyMap())    // 菜单中的自定义物品
+    var MENU_CUSTOM_ITEMS: Set<MenuItemData> by ConfigProperty(mutableSetOf())          // 菜单中的自定义物品
 
     var MENU_SHOW_ENCHANTMENT_LINE_1_SLOT: Char by ConfigProperty('a')
     var MENU_SHOW_ENCHANTMENT_LINE_2_SLOT: Char by ConfigProperty('b')
@@ -170,21 +171,15 @@ class EnchantingTableConfig private constructor():
 
         // 自定义物品
         config().getConfigurationSection("menu-setting.custom-items")?.let { customItemsSection ->
-            val customItems = mutableMapOf<Char, Pair<ItemStack?, List<ConfigActionTemplate>>>() // 创建结果列表
+            val customItems = mutableSetOf<MenuItemData>() // 创建结果列表
             customItemsSection.getKeys(false).forEach { itemSectionKey ->
                 // 解析物品节点如 'X', '?' 等节点
-                val itemSection = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
-                itemSection?.let { section ->
-                    // 使用节点构建物品
-                    val itemStack = ConfigParser.parseItemFromConfig(section, fileName, itemSectionKey)
-                    // 获取动作节点, 解析动作
-                    val actionList = section.getConfigurationSectionList("click-actions")
-                    val actionTemplates = actionList.mapNotNull { actionNode ->
-                        ConfigParser.parseActionTemplate(actionNode, fileName, itemSectionKey)
-                    }
-                    if (itemStack.nullOrAir()) return@forEach // 如果物品是空则跳过保存, 延迟处理是想要继续解析物品动作一类的并给予警告, 虽然物品无效整个节点都无效就是了.
+                val itemSections = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
+                itemSections?.let { section ->
                     // 保存到结果列表里
-                    customItems[itemSectionKey.first()] = itemStack to actionTemplates
+                    customItems.add(
+                        MenuItemData.getMenuItemDataBySection(section, itemSectionKey.first(), fileName)
+                    )
                 }
             }
             MENU_CUSTOM_ITEMS = customItems

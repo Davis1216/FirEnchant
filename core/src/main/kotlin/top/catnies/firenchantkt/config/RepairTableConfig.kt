@@ -12,6 +12,7 @@ import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
 import top.catnies.firenchantkt.util.YamlUtils
 import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
+import top.catnies.firenchantkt.util.resource_wrapper.MenuItemData
 import xyz.xenondevs.invui.gui.structure.Structure
 import kotlin.collections.LinkedHashMap
 
@@ -42,16 +43,10 @@ class RepairTableConfig private constructor():
     var MENU_OUTPUT_ACTIVE_ADDITION_LORE: List<String> by ConfigProperty(mutableListOf())   // 正在修复的物品的附加描述
     var MENU_OUTPUT_COMPLETED_ADDITION_LORE: List<String> by ConfigProperty(mutableListOf())// 已完成修复的物品的附加描述
 
-    var MENU_REPAIR_SLOT: Char by ConfigProperty('C')                                                       // 按钮槽位
-    var MENU_REPAIR_SLOT_ITEM: Pair<ItemStack?, List<ConfigActionTemplate>>? by ConfigProperty(null)        // 按钮槽位物品
-
-    var MENU_PREPAGE_SLOT: Char by ConfigProperty('P')                                                      // 上一页槽位
-    var MENU_PREPAGE_SLOT_ITEM: Pair<ItemStack?, List<ConfigActionTemplate>>? by ConfigProperty(null)       // 上一页槽位物品
-
-    var MENU_NEXTPAGE_SLOT: Char by ConfigProperty('N')                                                     // 下一页槽位
-    var MENU_NEXTPAGE_SLOT_ITEM: Pair<ItemStack?, List<ConfigActionTemplate>>? by ConfigProperty(null)      // 下一页槽位物品
-
-    var MENU_CUSTOM_ITEMS: Map<Char, Pair<ItemStack?, List<ConfigActionTemplate>>> by ConfigProperty(emptyMap())    // 菜单中的自定义物品
+    var MENU_REPAIR_ITEM: MenuItemData? = null
+    var MENU_PREVIOUS_PAGE_ITEM: MenuItemData? = null
+    var MENU_NEXT_PAGE_ITEM: MenuItemData? = null
+    var MENU_CUSTOM_ITEMS: Set<MenuItemData> by ConfigProperty(mutableSetOf())          // 菜单中的自定义物品
 
     /*修复规则*/
     var REPAIR_TIMERULE_RULE: String by ConfigProperty("static")     // 时间计算规则
@@ -109,59 +104,32 @@ class RepairTableConfig private constructor():
         MENU_OUTPUT_ACTIVE_ADDITION_LORE = config().getStringList("menu-setting.output-array.addition-active-lore")
         MENU_OUTPUT_COMPLETED_ADDITION_LORE = config().getStringList("menu-setting.output-array.addition-completed-lore")
 
-        MENU_REPAIR_SLOT = config().getString("menu-setting.repair-bottom.slot", "C")?.first() ?: 'C'
-        MENU_REPAIR_SLOT_ITEM = config().getConfigurationSection("menu-setting.repair-bottom")?.let { section ->
-            // 使用节点构建物品
-            val itemStack = ConfigParser.parseItemFromConfig(section, fileName, "menu-setting.repair-bottom")
-            // 获取动作节点, 解析动作
-            val actionList = section.getConfigurationSectionList("click-actions")
-            val actionTemplates = actionList.mapNotNull {
-                actionNode -> ConfigParser.parseActionTemplate(actionNode, fileName, "menu-setting.repair-bottom.click-actions")
-            }
-            itemStack to actionTemplates
+        // 修复物品
+        config().getConfigurationSection("menu-setting.repair-bottom")?.also { section ->
+            val slot = section.getString("slot")?.first() ?: 'C'
+            MENU_REPAIR_ITEM = MenuItemData.getMenuItemDataBySection(section, slot, fileName)
         }
-
-        MENU_PREPAGE_SLOT = config().getString("menu-setting.previous-page.slot", "P")?.first() ?: 'P'
-        MENU_PREPAGE_SLOT_ITEM = config().getConfigurationSection("menu-setting.previous-page")?.let { section ->
-            // 使用节点构建物品
-            val itemStack = ConfigParser.parseItemFromConfig(section, fileName, "menu-setting.previous-page")
-            // 获取动作节点, 解析动作
-            val actionList = section.getConfigurationSectionList("click-actions")
-            val actionTemplates = actionList.mapNotNull {
-                    actionNode -> ConfigParser.parseActionTemplate(actionNode, fileName, "menu-setting.previous-page.click-actions")
-            }
-            itemStack to actionTemplates
+        // 上一页物品
+        config().getConfigurationSection("menu-setting.previous-page")?.also { section ->
+            val slot = section.getString("slot")?.first() ?: 'P'
+            MENU_PREVIOUS_PAGE_ITEM= MenuItemData.getMenuItemDataBySection(section, slot, fileName)
         }
-
-        MENU_NEXTPAGE_SLOT = config().getString("menu-setting.next-page.slot", "N")?.first() ?: 'N'
-        MENU_NEXTPAGE_SLOT_ITEM = config().getConfigurationSection("menu-setting.next-page")?.let { section ->
-            // 使用节点构建物品
-            val itemStack = ConfigParser.parseItemFromConfig(section, fileName, "menu-setting.next-page")
-            // 获取动作节点, 解析动作
-            val actionList = section.getConfigurationSectionList("click-actions")
-            val actionTemplates = actionList.mapNotNull {
-                    actionNode -> ConfigParser.parseActionTemplate(actionNode, fileName, "menu-setting.next-page.click-actions")
-            }
-            itemStack to actionTemplates
+        // 下一页物品
+        config().getConfigurationSection("menu-setting.next-page")?.let { section ->
+            val slot = section.getString("slot")?.first() ?: 'N'
+            MENU_NEXT_PAGE_ITEM = MenuItemData.getMenuItemDataBySection(section, slot, fileName)
         }
-
-        // 读取配置文件, 尝试构建物品, 尝试构建点击逻辑链并缓存.
+        // 自定义物品
         config().getConfigurationSection("menu-setting.custom-items")?.let { customItemsSection ->
-            val customItems = mutableMapOf<Char, Pair<ItemStack?, List<ConfigActionTemplate>>>() // 创建结果列表
+            val customItems = mutableSetOf<MenuItemData>() // 创建结果列表
             customItemsSection.getKeys(false).forEach { itemSectionKey ->
                 // 解析物品节点如 'X', '?' 等节点
-                val itemSection = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
-                itemSection?.let { section ->
-                    // 使用节点构建物品
-                    val itemStack = ConfigParser.parseItemFromConfig(section, fileName, itemSectionKey)
-                    // 获取动作节点, 解析动作
-                    val actionList = section.getConfigurationSectionList("click-actions")
-                    val actionTemplates = actionList.mapNotNull { actionNode ->
-                        ConfigParser.parseActionTemplate(actionNode, fileName, itemSectionKey)
-                    }
-                    if (itemStack.nullOrAir()) return@forEach // 如果物品是空则跳过保存, 延迟处理是想要继续解析物品动作一类的并给予警告, 虽然物品无效整个节点都无效就是了.
+                val itemSections = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
+                itemSections?.let { section ->
                     // 保存到结果列表里
-                    customItems[itemSectionKey.first()] = itemStack to actionTemplates
+                    customItems.add(
+                        MenuItemData.getMenuItemDataBySection(section, itemSectionKey.first(), fileName)
+                    )
                 }
             }
             MENU_CUSTOM_ITEMS = customItems
