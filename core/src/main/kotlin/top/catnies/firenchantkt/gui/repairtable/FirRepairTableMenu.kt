@@ -250,6 +250,7 @@ class FirRepairTableMenu(
                 val menuCustomItem = MenuCustomItem({ _ -> data.item.renderItem(player) }, data.action)
                 builder.addIngredient(data.slot, menuCustomItem)
             }
+        gui = builder.build()
 
         // 如果关闭菜单则返回输入框里的所有物品.
         closeHandlers.add {

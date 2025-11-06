@@ -5,7 +5,6 @@ import io.papermc.paper.registry.RegistryKey
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
@@ -22,6 +21,7 @@ import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
 import top.catnies.firenchantkt.util.ResourceCopyUtils
 import top.catnies.firenchantkt.util.YamlUtils
 import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
+import top.catnies.firenchantkt.util.resource_wrapper.ETMenuItemData
 import top.catnies.firenchantkt.util.resource_wrapper.MenuItemData
 import xyz.xenondevs.invui.gui.structure.Structure
 
@@ -57,25 +57,12 @@ class EnchantingTableConfig private constructor():
     var MENU_INPUT_SLOT: Char by ConfigProperty('I')                                    // 放入物品的槽位
     var MENU_CUSTOM_ITEMS: Set<MenuItemData> by ConfigProperty(mutableSetOf())          // 菜单中的自定义物品
 
-    var MENU_SHOW_ENCHANTMENT_LINE_1_SLOT: Char by ConfigProperty('a')
-    var MENU_SHOW_ENCHANTMENT_LINE_2_SLOT: Char by ConfigProperty('b')
-    var MENU_SHOW_ENCHANTMENT_LINE_3_SLOT: Char by ConfigProperty('c')
-    var MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_SLOT: Char by ConfigProperty('A')
-    var MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_SLOT: Char by ConfigProperty('B')
-    var MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_SLOT: Char by ConfigProperty('C')
-
-    var MENU_SHOW_ENCHANTMENT_LINE_1_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_1_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_OFFLINE: ConfigurationSection? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_LINE_1: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_LINE_2: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_LINE_3: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_BOOK_1: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_BOOK_2: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_BOOK_3: ETMenuItemData? by ConfigProperty(null)
 
     var ENCHANT_COST_LINE_1_MIN_FAILURE: Int by ConfigProperty(0)
     var ENCHANT_COST_LINE_2_MIN_FAILURE: Int by ConfigProperty(0)
@@ -89,7 +76,6 @@ class EnchantingTableConfig private constructor():
     var ENCHANT_COST_LINE_1_CONDITIONS: List<ConfigConditionTemplate> by ConfigProperty(listOf())
     var ENCHANT_COST_LINE_2_CONDITIONS: List<ConfigConditionTemplate> by ConfigProperty(listOf())
     var ENCHANT_COST_LINE_3_CONDITIONS: List<ConfigConditionTemplate> by ConfigProperty(listOf())
-
 
     /*附魔书*/
     var ORIGINAL_BOOK_MATCHES: MutableList<OriginalBookData> by ConfigProperty(mutableListOf())
@@ -128,25 +114,12 @@ class EnchantingTableConfig private constructor():
             Bukkit.getConsoleSender().sendTranslatableComponent(RESOURCE_MENU_STRUCTURE_ERROR, fileName) }
         MENU_INPUT_SLOT = config().getString("menu-setting.input-slot", "I")?.first() ?: 'I'
 
-        MENU_SHOW_ENCHANTMENT_LINE_1_SLOT = config().getString("menu-setting.show-enchantment-slot.line-1.slot", "a")?.first() ?: 'a'
-        MENU_SHOW_ENCHANTMENT_LINE_2_SLOT = config().getString("menu-setting.show-enchantment-slot.line-2.slot", "b")?.first() ?: 'b'
-        MENU_SHOW_ENCHANTMENT_LINE_3_SLOT = config().getString("menu-setting.show-enchantment-slot.line-3.slot", "c")?.first() ?: 'c'
-        MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_SLOT = config().getString("menu-setting.show-enchantment-slot.line-1-book.slot", "A")?.first() ?: 'A'
-        MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_SLOT = config().getString("menu-setting.show-enchantment-slot.line-2-book.slot", "B")?.first() ?: 'B'
-        MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_SLOT = config().getString("menu-setting.show-enchantment-slot.line-3-book.slot", "C")?.first() ?: 'C'
-
-        MENU_SHOW_ENCHANTMENT_LINE_1_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1.online")
-        MENU_SHOW_ENCHANTMENT_LINE_2_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2.online")
-        MENU_SHOW_ENCHANTMENT_LINE_3_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3.online")
-        MENU_SHOW_ENCHANTMENT_LINE_1_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_2_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_3_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1-book.online")
-        MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2-book.online")
-        MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3-book.online")
-        MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1-book.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2-book.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3-book.offline")
+        MENU_SHOW_ENCHANTMENT_LINE_1 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1")!!, 'a', false, fileName)
+        MENU_SHOW_ENCHANTMENT_LINE_2 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2")!!, 'b', false, fileName)
+        MENU_SHOW_ENCHANTMENT_LINE_3 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3")!!, 'c', false, fileName)
+        MENU_SHOW_ENCHANTMENT_BOOK_1 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1-book")!!, 'A', true, fileName)
+        MENU_SHOW_ENCHANTMENT_BOOK_2 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2-book")!!, 'B', true, fileName)
+        MENU_SHOW_ENCHANTMENT_BOOK_3 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3-book")!!, 'C', true, fileName)
 
         ENCHANT_COST_LINE_1_MIN_FAILURE = config().getInt("enchant-cost.line-1.min-failure", 0)
         ENCHANT_COST_LINE_2_MIN_FAILURE = config().getInt("enchant-cost.line-2.min-failure", 0)

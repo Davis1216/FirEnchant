@@ -1,52 +1,18 @@
 package top.catnies.firenchantkt.util
 
-import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ItemLore
-import net.kyori.adventure.key.Key
-import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
-import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.api.FirEnchantAPI
 import top.catnies.firenchantkt.engine.*
 import top.catnies.firenchantkt.language.MessageConstants
 import top.catnies.firenchantkt.language.MessageConstants.CONFIG_ACTION_INVALID_ARGS
 import top.catnies.firenchantkt.language.MessageConstants.CONFIG_CONDITION_INVALID_ARGS
-import top.catnies.firenchantkt.util.MessageUtils.renderToComponent
 import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
 import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 
 object ConfigParser {
-
-    // 从配置文件节点解析, 装饰物品属性
-    fun parseItemFromConfigWithBaseItem(baseItem: ItemStack, section: ConfigurationSection, fileName: String = "none", node: String = "none"): ItemStack {
-        val originalName = baseItem.getData(DataComponentTypes.ITEM_NAME)
-        section.getString("item-name")?.let { baseItem.setData(
-            DataComponentTypes.ITEM_NAME,
-            it.renderToComponent().replaceText { builder -> builder.matchLiteral("{original_name}").replacement(originalName) }
-            )
-        }
-
-        val originalLore = baseItem.getData(DataComponentTypes.LORE)?.lines()
-        val lore = section.getStringList("lore")
-        if (lore.isNotEmpty()) {
-            val resultLore = lore.fold(mutableListOf<Component>()) { acc, line ->
-                if (line.contains("{original_lore}") && originalLore != null) acc.addAll(originalLore)
-                else acc.add(line.renderToComponent())
-                acc
-            }
-            baseItem.setData(DataComponentTypes.LORE, ItemLore.lore(resultLore))
-        }
-
-        section.getString("item-model")?.let { baseItem.setData(DataComponentTypes.ITEM_MODEL, Key.key(it)) }
-        section.getDouble("custom-model-data").let { baseItem.editMeta { meta -> meta.setCustomModelData(it.toInt()) } }
-        section.getInt("amount", 1).let { baseItem.apply { amount = it } }
-        section.getString("damage")?.let { baseItem.setData(DataComponentTypes.DAMAGE, section.getInt("damage", 0)) }
-        return baseItem
-    }
-
 
     // 解析Action模板
     fun parseActionTemplate(config: ConfigurationSection, fileName: String = "none", node: String = "none"): ConfigActionTemplate? {
