@@ -3,7 +3,6 @@ package top.catnies.firenchantkt.util.resource_wrapper
 import io.papermc.paper.datacomponent.DataComponentTypes
 import io.papermc.paper.datacomponent.item.ItemLore
 import net.kyori.adventure.key.Key
-import net.kyori.adventure.pointer.Pointered
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
 import org.bukkit.configuration.ConfigurationSection
@@ -31,7 +30,7 @@ class ItemStackData(
         ItemRender(section)
     )
 
-    // 验证物品是否存在
+    // 验证物品是否存在, 并生成基础物品缓存;
     fun verifyItem(fileName: String, path: String): Boolean {
         itemProvider = FirEnchantAPI.itemProviderRegistry().getItemProvider(plugin) ?: run {
             Bukkit.getConsoleSender().sendTranslatableComponent(RESOURCE_HOOK_ITEM_PROVIDER_NOT_FOUND, fileName, path, plugin)
@@ -46,9 +45,19 @@ class ItemStackData(
         return true
     }
 
-    // 渲染物品
-    fun renderItem(ptr: Pointered? = null, args: Map<String, String> = mutableMapOf()): ItemStack {
-        return render.renderItem(baseItem.clone())
+    // 获取渲染后的物品
+    fun renderItem(ptr: Player? = null, args: Map<String, String> = mutableMapOf()): ItemStack {
+        return render.renderItem(baseItem.clone(), args = args)
+    }
+
+    // 不走缓存获取基础物品
+    fun renderItemNoCache(ptr: Player? = null, args: Map<String, String> = mutableMapOf()): ItemStack {
+        return baseItemNoCache().apply { render.renderItem(this, ptr, args) }
+    }
+
+    // 不走缓存重新获取基础物品
+    fun baseItemNoCache(): ItemStack {
+        return itemProvider.getItemById(id)!!
     }
 
 }

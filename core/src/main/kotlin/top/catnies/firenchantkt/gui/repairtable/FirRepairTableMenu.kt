@@ -26,7 +26,6 @@ import top.catnies.firenchantkt.item.FirRepairTableItemRegistry
 import top.catnies.firenchantkt.language.MessageConstants
 import top.catnies.firenchantkt.util.ItemUtils.deserializeFromBytes
 import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
-import top.catnies.firenchantkt.util.ItemUtils.replacePlaceholder
 import top.catnies.firenchantkt.util.ItemUtils.serializeToBytes
 import top.catnies.firenchantkt.util.MessageUtils.renderToComponent
 import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
@@ -202,7 +201,7 @@ class FirRepairTableMenu(
     // 上一页 和 下一页
     private fun buildPageItem() {
         previousPageItem?.let {
-            previousPageBottom = MenuPageItem(false, it.action) { s ->
+            previousPageBottom = MenuPageItem(false, it.action) { _ ->
                 if (gui.currentPage == 0) return@MenuPageItem ItemStack.empty()
 
                 val itemStack = it.item.renderItem(player, mutableMapOf(
@@ -216,7 +215,7 @@ class FirRepairTableMenu(
         }
 
         nextPageItem?.let {
-            nextPageBottom = MenuPageItem(true, it.action) { s ->
+            nextPageBottom = MenuPageItem(true, it.action) { _ ->
                 if (gui.pageAmount == 0) return@MenuPageItem ItemStack.empty() // 总页数为0代表目前没有正在修复的装备
                 if (gui.currentPage == gui.pageAmount - 1) return@MenuPageItem ItemStack.empty() // 如果当前页数 = (总页数 - 1)就代表是最后一页
 
