@@ -24,7 +24,6 @@ import top.catnies.firenchantkt.gui.item.MenuRepairItem
 import top.catnies.firenchantkt.item.brokengear.FirBrokenGear
 import top.catnies.firenchantkt.item.FirRepairTableItemRegistry
 import top.catnies.firenchantkt.language.MessageConstants
-import top.catnies.firenchantkt.util.ItemUtils.deserializeFromBytes
 import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.ItemUtils.serializeToBytes
 import top.catnies.firenchantkt.util.MessageUtils.renderToComponent
@@ -284,18 +283,21 @@ class FirRepairTableMenu(
         if (itemRepairTable.isReceived) return
 
         // 创建 ItemProvider
-        val originItem = itemRepairTable.itemData.deserializeFromBytes()
+        val brokenItem = itemRepairTable.brokenItem
+        val repairedItem = itemRepairTable.repairedItem
         val itemProvider = ItemProvider { _ ->
-            val itemStack = originItem.clone()
-            val resultLore = itemStack.getData(DataComponentTypes.LORE)?.lines()?.toMutableList()
+            val resultLore = brokenItem.getData(DataComponentTypes.LORE)?.lines()?.toMutableList()
+            // 已修复
             if (itemRepairTable.isCompleted) {
                 val components = completedAdditionLores.map { line -> line.renderToComponent(player) }
                 val lore = ItemLore.lore().let { builder ->
                     resultLore?.let { builder.addLines(it) }
                     builder.addLines(components).build()
                 }
-                itemStack.apply { setData(DataComponentTypes.LORE, lore) }
-            } else {
+                repairedItem.clone().apply { setData(DataComponentTypes.LORE, lore) }
+            }
+            // 未修复
+            else {
                 val components = activeAdditionLores.map { line ->
                     line.renderToComponent(
                         player,
@@ -306,12 +308,12 @@ class FirRepairTableMenu(
                     resultLore?.let { builder.addLines(it) }
                     builder.addLines(components).build()
                 }
-                itemStack.apply { setData(DataComponentTypes.LORE, lore) }
+                brokenItem.clone().apply { setData(DataComponentTypes.LORE, lore) }
             }
         }
 
         // 构建物品
-        val autoUpdateItem = MenuRepairItem(itemRepairTable, outputUpdateTime, originItem, itemProvider, { click ->
+        val autoUpdateItem = MenuRepairItem(itemRepairTable, outputUpdateTime, brokenItem, itemProvider, { click ->
             when {
                 // 当装备已经被领取
                 itemRepairTable.isReceived -> return@MenuRepairItem true
