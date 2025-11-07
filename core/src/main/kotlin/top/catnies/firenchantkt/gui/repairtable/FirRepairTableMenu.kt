@@ -52,9 +52,9 @@ class FirRepairTableMenu(
 ): RepairTableMenu {
 
     companion object {
-        val plugin = FirEnchantPlugin.Companion.instance
-        val config = RepairTableConfig.Companion.instance
-        val brokenGear = FirBrokenGear.Companion.instance
+        val plugin = FirEnchantPlugin.instance
+        val config = RepairTableConfig.instance
+        val brokenGear = FirBrokenGear.instance
     }
 
     /*配置文件缓存*/
@@ -128,14 +128,15 @@ class FirRepairTableMenu(
                         event.isCancelled = true
                         return@Consumer
                     }
-                    // 执行
-                    TaskUtils.runAsyncTasksLater(
-                        { window.changeTitle(titleAccept.wrapTitle(player)) },
-                        delay = 1L
-                    ) // 延迟刷新标题, 否则可能会把物品刷新给覆盖掉.
+                    // 修改属性
                     showBottom = true
                     repairTime = inputEvent.repairTime // 将修复时间传递到点击按钮上
                     confirmBottom.notifyWindows()
+                    // 延迟刷新标题, 否则可能会把物品刷新给覆盖掉.
+                    TaskUtils.runAsyncTasksLater(
+                        { window.changeTitle(titleAccept.wrapTitle(player)) },
+                        delay = 0L
+                    )
                 }
                 event.isRemove -> {
                     TaskUtils.runAsyncTasksLater({ window.changeTitle(titleDeny.wrapTitle(player)) }, delay = 1L)
@@ -194,6 +195,12 @@ class FirRepairTableMenu(
             showBottom = false
             repairTime = null
             confirmBottom.notifyWindows()
+
+            // 延迟刷新菜单
+            TaskUtils.runAsyncTasksLater(
+                { window.changeTitle(titleDeny.wrapTitle(player)) },
+                delay = 0L
+            )
         }
         confirmBottom = SimpleItem(itemProvider, clickHandler)
     }

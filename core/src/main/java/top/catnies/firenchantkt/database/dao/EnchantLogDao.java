@@ -1,13 +1,10 @@
-package top.catnies.firenchantkt.database.dao.sqlite;
+package top.catnies.firenchantkt.database.dao;
 
-import com.j256.ormlite.support.ConnectionSource;
 import com.j256.ormlite.table.TableUtils;
 import org.bukkit.Bukkit;
 import top.catnies.firenchantkt.FirEnchantPlugin;
 import top.catnies.firenchantkt.api.ServiceContainer;
 import top.catnies.firenchantkt.database.FirConnectionManager;
-import top.catnies.firenchantkt.database.dao.AbstractDao;
-import top.catnies.firenchantkt.database.dao.EnchantLogData;
 import top.catnies.firenchantkt.database.entity.AnvilEnchantLogTable;
 import top.catnies.firenchantkt.util.MessageUtils;
 
@@ -17,19 +14,16 @@ import java.util.UUID;
 
 import static top.catnies.firenchantkt.language.MessageConstants.DATABASE_TABLE_CREATE_ERROR;
 
-public class SQLiteEnchantLogData extends AbstractDao<AnvilEnchantLogTable, Integer> implements EnchantLogData{
+public class EnchantLogDao extends AbstractDao<AnvilEnchantLogTable, Integer> implements EnchantLogData {
 
-    private static SQLiteEnchantLogData instance;
+    private static EnchantLogDao instance;
     private static final int CURRENT_VERSION = 1;
 
-    private ConnectionSource source;
-
-    private SQLiteEnchantLogData(){}
-    public static SQLiteEnchantLogData getInstance() {
+    private EnchantLogDao(){}
+    public static EnchantLogDao getInstance() {
         if (instance == null) {
-            instance = new SQLiteEnchantLogData();
+            instance = new EnchantLogDao();
             instance.createTable();
-            instance.source = FirConnectionManager.getInstance().getConnectionSource();
             ServiceContainer.INSTANCE.register(EnchantLogData.class, instance);
         }
         return instance;

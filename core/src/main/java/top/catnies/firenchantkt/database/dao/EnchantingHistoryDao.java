@@ -1,12 +1,10 @@
-package top.catnies.firenchantkt.database.dao.sqlite;
+package top.catnies.firenchantkt.database.dao;
 
 import com.j256.ormlite.table.TableUtils;
 import org.bukkit.Bukkit;
 import top.catnies.firenchantkt.FirEnchantPlugin;
 import top.catnies.firenchantkt.api.ServiceContainer;
 import top.catnies.firenchantkt.database.FirConnectionManager;
-import top.catnies.firenchantkt.database.dao.AbstractDao;
-import top.catnies.firenchantkt.database.dao.EnchantingHistoryData;
 import top.catnies.firenchantkt.database.entity.EnchantingHistoryTable;
 import top.catnies.firenchantkt.util.MessageUtils;
 
@@ -16,15 +14,15 @@ import java.util.UUID;
 
 import static top.catnies.firenchantkt.language.MessageConstants.DATABASE_TABLE_CREATE_ERROR;
 
-public class SQLiteEnchantingHistoryData extends AbstractDao<EnchantingHistoryTable, Integer> implements EnchantingHistoryData {
+public class EnchantingHistoryDao extends AbstractDao<EnchantingHistoryTable, Integer> implements EnchantingHistoryData {
 
-    private static SQLiteEnchantingHistoryData instance;
+    private static EnchantingHistoryDao instance;
     private static final int CURRENT_VERSION = 1;
 
-    private SQLiteEnchantingHistoryData(){}
-    public static SQLiteEnchantingHistoryData getInstance() {
+    private EnchantingHistoryDao(){}
+    public static EnchantingHistoryDao getInstance() {
         if (instance == null) {
-            instance = new SQLiteEnchantingHistoryData();
+            instance = new EnchantingHistoryDao();
             instance.createTable();
             ServiceContainer.INSTANCE.register(EnchantingHistoryData.class, instance);
         }
@@ -42,6 +40,7 @@ public class SQLiteEnchantingHistoryData extends AbstractDao<EnchantingHistoryTa
             Bukkit.getPluginManager().disablePlugin(FirEnchantPlugin.getInstance());
         }
     }
+
 
     @Override
     public void create(EnchantingHistoryTable historyData) {
