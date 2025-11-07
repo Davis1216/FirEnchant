@@ -12,16 +12,26 @@ class FirReductionCard: ReductionCard {
 
     override fun matches(itemStack: ItemStack): Boolean {
         val tag = RtagItem.of(itemStack)
-        val type = tag.get("FirEnchant", "RepairType") as? String ?: return false
-        val value = tag.get("FirEnchant", "RepairValue") as? Double ?: tag.get("FirEnchant", "RepairValue") as? Int ?: return false
-        ReductionType.entries.find { it.name.equals(type, true) } ?: return false
-        return true
+        val typeStr = tag.get<String>("FirEnchant", "RepairType") ?: return false
+        val type = ReductionType.entries.find { it.name.equals(typeStr, true) } ?: return false
+
+        // 根据不同type采取不同方式读取value，避免类型转换错误
+        return when (type) {
+            ReductionType.PERCENT -> (tag.get<Number>("FirEnchant", "RepairValue")?.toFloat() != null)
+            ReductionType.STATIC -> (tag.get<Number>("FirEnchant", "RepairValue")?.toInt() != null)
+        }
     }
 
     override fun onUse(event: InventoryClickEvent, context: RepairTableContext) {
         val tag = RtagItem.of(context.cursor)
-        val type = tag.get<String>("FirEnchant", "RepairType").let { type -> ReductionType.entries.find { it.name.equals(type, true) } }!!
-        val value = tag.get("FirEnchant", "RepairValue") as? Double ?: (tag.get("FirEnchant", "RepairValue") as? Int)?.toDouble() ?: return
+        val typeStr = tag.get<String>("FirEnchant", "RepairType") ?: return
+        val type = ReductionType.entries.find { it.name.equals(typeStr, true) } ?: return
+
+        // 根据具体type安全地读取value
+        val value: Double = when (type) {
+            ReductionType.PERCENT -> tag.get<Number>("FirEnchant", "RepairValue")?.toDouble() ?: return
+            ReductionType.STATIC -> tag.get<Number>("FirEnchant", "RepairValue")?.toInt()?.toDouble() ?: return
+        }
 
         // 广播事件
         val useEvent = ReductionCardUseEvent(
