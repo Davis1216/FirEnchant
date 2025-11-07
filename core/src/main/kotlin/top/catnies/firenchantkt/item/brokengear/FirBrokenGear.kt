@@ -8,6 +8,7 @@ import top.catnies.firenchantkt.config.RepairTableConfig
 import top.catnies.firenchantkt.util.ItemUtils.deserializeFromBytes
 import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.ItemUtils.serializeToBytes
+import top.catnies.firenchantkt.util.resource_wrapper.ItemStackData
 
 class FirBrokenGear: BrokenGear {
 
@@ -18,8 +19,8 @@ class FirBrokenGear: BrokenGear {
         } }
     }
 
-    val config = RepairTableConfig.Companion.instance
-    val fallback: () -> ItemStack = { config.BROKEN_FALLBACK_WRAPPER_ITEM!! }
+    val config = RepairTableConfig.instance
+    val fallback: () -> ItemStackData = { config.BROKEN_FALLBACK_WRAPPER_ITEM!! }
     val matches = config.BROKEN_MATCHES
 
     override fun isBrokenGear(item: ItemStack?): Boolean {
@@ -32,7 +33,7 @@ class FirBrokenGear: BrokenGear {
         val wrapperItem = matches.find { it.matchItem(item) }?.wrapperItem ?: fallback()
 
         // 保存原物品
-        val wrapper = wrapperItem.clone()
+        val wrapper = wrapperItem.renderItem()
         val bytes = item.serializeToBytes()
         RtagItem.edit(wrapper) { it.set(bytes, "FirEnchant", "FixType") }
 

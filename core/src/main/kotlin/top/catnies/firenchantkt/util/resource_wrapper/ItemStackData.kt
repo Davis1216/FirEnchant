@@ -24,6 +24,12 @@ class ItemStackData(
     lateinit var itemProvider: ItemProvider
     lateinit var baseItem: ItemStack
 
+    constructor(section: ConfigurationSection, render: ItemRender) : this (
+        section.getString("hooked-plugin") ?: "null",
+        section.getString("hooked-id") ?: "null",
+        render
+    )
+
     constructor(section: ConfigurationSection) : this (
         section.getString("hooked-plugin") ?: "null",
         section.getString("hooked-id") ?: "null",

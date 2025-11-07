@@ -12,11 +12,7 @@ import top.catnies.firenchantkt.api.event.anvil.ProtectionRunePreUseEvent
 import top.catnies.firenchantkt.api.event.anvil.ProtectionRuneUseEvent
 import top.catnies.firenchantkt.config.AnvilConfig
 import top.catnies.firenchantkt.context.AnvilContext
-import top.catnies.firenchantkt.integration.FirItemProviderRegistry
-import top.catnies.firenchantkt.integration.ItemProvider
-import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.TaskUtils
-import top.catnies.firenchantkt.util.YamlUtils
 
 class FirProtectionRune(): ProtectionRune {
 
@@ -26,9 +22,8 @@ class FirProtectionRune(): ProtectionRune {
         val config = AnvilConfig.instance
     }
 
-    var isEnabled: Boolean = false
-    var itemProvider: ItemProvider? = null
-    var itemID: String? = null
+    var enabled: Boolean = false
+    var runeItem: ItemStack? = null
 
     init {
         load()
@@ -36,17 +31,17 @@ class FirProtectionRune(): ProtectionRune {
 
     // 检查配置合法性
     override fun load() {
-        isEnabled = config.PROTECTION_RUNE_ENABLE
-        if (isEnabled) {
-            itemProvider = FirItemProviderRegistry.instance.getItemProvider(config.PROTECTION_RUNE_ITEM_PROVIDER!!)!!
-            itemID = config.PROTECTION_RUNE_ITEM_ID!!
+        enabled = config.PROTECTION_RUNE_ENABLE
+        runeItem = null
+        if (enabled) {
+            runeItem = config.PROTECTION_RUNE_ITEM!!.renderItem()
         }
     }
 
     override fun reload() = load()
 
     override fun hasProtectionRune(item: ItemStack): Boolean {
-        if (!isEnabled) return false // 如果功能未开启就均视为没有保护.
+        if (!enabled) return false // 如果功能未开启就均视为没有保护.
         RtagItem.of(item).let { tag ->
             return tag.get<String>("FirEnchant", "HasProtection") == "yes"
         }
@@ -75,8 +70,9 @@ class FirProtectionRune(): ProtectionRune {
     }
 
     override fun matches(itemStack: ItemStack): Boolean {
-        if (!isEnabled) return false
-        return itemProvider!!.getIdByItem(itemStack) == itemID
+        if (!enabled) return false
+        val data = config.PROTECTION_RUNE_ITEM!!
+        return data.itemProvider.getIdByItem(itemStack) == data.id
     }
 
     override fun onPrepare(

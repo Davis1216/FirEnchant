@@ -28,9 +28,8 @@ class FirEnchantSoul: EnchantSoul {
         val config = AnvilConfig.instance
     }
 
-    var isEnabled: Boolean = false
-    lateinit var itemProvider: ItemProvider
-    lateinit var itemID: String
+    var enabled: Boolean = false
+    var soulItem: ItemStack? = null
 
     init {
         load()
@@ -38,18 +37,19 @@ class FirEnchantSoul: EnchantSoul {
 
     // 检查配置合法性
     override fun load() {
-        isEnabled = config.ENCHANT_SOUL_ENABLE
-        if (isEnabled) {
-            itemProvider = FirItemProviderRegistry.instance.getItemProvider(config.ENCHANT_SOUL_ITEM_PROVIDER!!)!!
-            itemID = config.ENCHANT_SOUL_ITEM_ID!!
+        enabled = config.ENCHANT_SOUL_ENABLE
+        soulItem = null
+        if (enabled) {
+            soulItem = config.ENCHANT_SOUL_ITEM!!.renderItem()
         }
     }
 
     override fun reload() = load()
 
     override fun matches(itemStack: ItemStack): Boolean {
-        if (!isEnabled) return false
-        return itemProvider.getIdByItem(itemStack) == itemID
+        if (!enabled) return false
+        val data = config.ENCHANT_SOUL_ITEM!!
+        return data.itemProvider.getIdByItem(itemStack) == data.id
     }
 
     override fun onPrepare(
@@ -63,7 +63,7 @@ class FirEnchantSoul: EnchantSoul {
         val canUseAmount = getCanUseAmount(setting, context.secondItem.amount).also { if (it <= 0) return }
         val costExp = config.ENCHANT_SOUL_EXP * canUseAmount
         val resultSetting = FirEnchantmentSettingFactory.fromAnother(setting).apply {
-            failure = failure - canUseAmount * getPreSoulSubChance()
+            failure -= canUseAmount * getPreSoulSubChance()
             consumedSouls += canUseAmount
         }
 

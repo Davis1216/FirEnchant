@@ -1,20 +1,17 @@
 package top.catnies.firenchantkt.config
 
 import org.bukkit.Bukkit
-import org.bukkit.Material
-import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.engine.ConfigActionTemplate
 import top.catnies.firenchantkt.item.brokengear.BrokenMatchRule
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_MENU_STRUCTURE_ERROR
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_VALUE_INVALID_ERROR
 import top.catnies.firenchantkt.util.ConfigParser
-import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
-import top.catnies.firenchantkt.util.YamlUtils
 import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
+import top.catnies.firenchantkt.util.resource_wrapper.ItemRender
+import top.catnies.firenchantkt.util.resource_wrapper.ItemStackData
 import top.catnies.firenchantkt.util.resource_wrapper.MenuItemData
 import xyz.xenondevs.invui.gui.structure.Structure
-import kotlin.collections.LinkedHashMap
 
 class RepairTableConfig private constructor():
     AbstractConfigFile("modules/repair_table.yml")
@@ -60,7 +57,7 @@ class RepairTableConfig private constructor():
     var REPAIR_MAGNIFICATION_RULE: LinkedHashMap<String, Double> by ConfigProperty(LinkedHashMap()) // 折扣列表
 
     /*破损物品*/
-    var BROKEN_FALLBACK_WRAPPER_ITEM: ItemStack? by ConfigProperty(null)                // 破损物品包装
+    var BROKEN_FALLBACK_WRAPPER_ITEM: ItemStackData? by ConfigProperty(null)                // 破损物品包装
     var BROKEN_MATCHES: MutableList<BrokenMatchRule> by ConfigProperty(mutableListOf()) // 破损物品包装
 
 
@@ -143,18 +140,17 @@ class RepairTableConfig private constructor():
         } ?: emptyList()
 
         /*破损物品*/
-        val itemProviderId = config().getString("broken-item-model.fallback-item.hooked-plugin", null)
-        val itemId = config().getString("broken-item-model.fallback-item.hooked-id", null)
-        BROKEN_FALLBACK_WRAPPER_ITEM = YamlUtils.tryBuildItem(itemProviderId, itemId, fileName, "broken-item-model.fallback-item")
-            ?: ItemStack(Material.STONE)
+        BROKEN_FALLBACK_WRAPPER_ITEM = ItemStackData(config().getConfigurationSection("broken-item-model.fallback-item")!!, ItemRender())
+            .also { item -> item.verifyItem(fileName, "broken-item-model.fallback-item") }
 
         // 构建捕捉规则
-        config().getConfigurationSectionList("broken-item-model.matches").forEach {
+        val map = config().getConfigurationSectionList("broken-item-model.matches").map {
             val matchIDs = it.getStringList("match-item")
-            val itemProviderID = it.getString("wrapper-item.hooked-plugin")
-            val itemID = it.getString("wrapper-item.hooked-id")
-            val itemWrapper = YamlUtils.tryBuildItem(itemProviderID, itemID, fileName, "broken-item-model.matches") ?: return@forEach
-            BROKEN_MATCHES.add(BrokenMatchRule(matchIDs, itemWrapper))
+            val itemWrapper = ItemStackData(it.getConfigurationSection("wrapper-item")!!, ItemRender())
+                .also { data -> data.verifyItem(fileName, "broken-item-model.matches") }
+            BrokenMatchRule(matchIDs, itemWrapper)
         }
+        BROKEN_MATCHES.clear()
+        BROKEN_MATCHES.addAll(map)
     }
 }

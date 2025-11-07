@@ -27,10 +27,8 @@ import top.catnies.firenchantkt.language.MessageConstants.ANVIL_ENCHANTED_BOOK_U
 import top.catnies.firenchantkt.language.MessageConstants.ANVIL_ENCHANTED_BOOK_USE_PROTECT_FAIL
 import top.catnies.firenchantkt.util.ItemUtils.addRepairCost
 import top.catnies.firenchantkt.util.ItemUtils.isCompatibleWithEnchantment
-import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
 import top.catnies.firenchantkt.util.TaskUtils
-import top.catnies.firenchantkt.util.YamlUtils
 import kotlin.math.max
 import kotlin.math.min
 
@@ -44,9 +42,8 @@ class FirEnchantedBook : EnchantedBook {
 
     val enchantLogData: EnchantLogData = FirConnectionManager.getInstance().enchantLogData
     val cacheManager: FirCacheManager = FirCacheManager.getInstance()
-    var failBackEnable: Boolean = false
+    var enabled: Boolean = false
     var failBackItem: ItemStack? = null
-
 
     init {
         load()
@@ -54,15 +51,10 @@ class FirEnchantedBook : EnchantedBook {
 
     // 检查部分配置
     override fun load() {
-        failBackEnable = config.EB_FAIL_BACK_ENABLE
-        if (failBackEnable) {
-            failBackItem = YamlUtils.tryBuildItem(
-                config.EB_FAIL_BACK_ITEM_PROVIDER,
-                config.EB_FAIL_BACK_ITEM_ID,
-                config.fileName,
-                "fail-back-item"
-            )
-            if (failBackItem.nullOrAir()) failBackEnable = false
+        enabled = config.EB_FAIL_BACK_ENABLE
+        failBackItem = null
+        if (enabled) {
+            failBackItem = config.EB_FAIL_BACK_ITEM!!.renderItem()
         }
     }
 
@@ -134,7 +126,6 @@ class FirEnchantedBook : EnchantedBook {
         }
     }
 
-
     override fun onCost(event: InventoryClickEvent, context: AnvilContext) {
         val firstSetting = FirEnchantmentSettingFactory.fromItemStack(context.firstItem)
         val setting = FirEnchantmentSettingFactory.fromItemStack(context.secondItem)!!
@@ -198,35 +189,31 @@ class FirEnchantedBook : EnchantedBook {
                 anvilView.setItem(1, ItemStack.empty())
                 anvilView.setItem(2, ItemStack.empty())
 
-                // 检查是否开启了破坏装备
-                if (config.EB_BREAK_FAILED_ITEM) {
-                    when {
-                        // 有保护符文
-                        FirEnchantAPI.hasProtectionRune(context.firstItem) -> {
-                            FirEnchantAPI.removeProtectionRune(context.firstItem)
-                            failBackItem?.let { anvilView.setCursor(it) }
-                            player.playSound(player.location, "block.anvil.destroy", 1f, 1f)
-                            player.sendTranslatableComponent(ANVIL_ENCHANTED_BOOK_USE_PROTECT_FAIL)
-                        }
-                        // 没有保护符文
-                        else -> {
-                            anvilView.setItem(0, FirEnchantAPI.toBrokenGear(context.firstItem))
-                            failBackItem?.let { anvilView.setCursor(it) }
-                            player.playSound(player.location, "block.anvil.destroy", 1f, 1f)
-                            player.sendTranslatableComponent(ANVIL_ENCHANTED_BOOK_USE_FAIL_BREAK)
-                        }
-                    }
-                }
+                // 返回失败补偿物品
+                if (enabled) anvilView.setCursor(failBackItem)
+
                 // 没开启破坏装备
-                else {
-                    failBackItem?.let { anvilView.setCursor(it) }
+                if (!config.EB_BREAK_FAILED_ITEM) {
                     player.playSound(player.location, "block.anvil.destroy", 1f, 1f)
                     player.sendTranslatableComponent(ANVIL_ENCHANTED_BOOK_USE_FAIL)
+                    return
                 }
+
+                // 开启了破坏装备 & 有保护符文
+                if (FirEnchantAPI.hasProtectionRune(context.firstItem)) {
+                    FirEnchantAPI.removeProtectionRune(context.firstItem)
+                    player.playSound(player.location, "block.anvil.destroy", 1f, 1f)
+                    player.sendTranslatableComponent(ANVIL_ENCHANTED_BOOK_USE_PROTECT_FAIL)
+                    return
+                }
+
+                // 开启了破坏装备 & 没有保护符文
+                anvilView.setItem(0, FirEnchantAPI.toBrokenGear(context.firstItem))
+                player.playSound(player.location, "block.anvil.destroy", 1f, 1f)
+                player.sendTranslatableComponent(ANVIL_ENCHANTED_BOOK_USE_FAIL_BREAK)
             }
         }
     }
-
 
     // 检查是否是两本附魔书合并的情况
     private fun isEnchantedBookMerge(firstSetting: EnchantmentSetting?, secondSetting: EnchantmentSetting?): Boolean {

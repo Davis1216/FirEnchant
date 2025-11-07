@@ -17,29 +17,33 @@ import top.catnies.firenchantkt.item.anvil.SlotRune
 import kotlin.math.min
 
 // 拓展符文
-class SlotRuneImpl: SlotRune {
+class FirSlotRune(
+    val loader: EnchantmentSlotsLoader
+): SlotRune {
 
-    companion object {
-        var isEnabled = false
-        var costExp = 18
-        var itemProvider: ItemProvider? = null
-        var itemID: String? = null
-        var delegatesLoader: EnchantmentSlotsLoader? = null
-    }
-
+    var enabled: Boolean = false
+    var costExp = 18
+    var itemProvider: ItemProvider? = null
+    var id: String? = null
     val plugin = Bukkit.getPluginManager().getPlugin("FirEnchantKt")!!
 
-    override fun load() {
-        delegatesLoader?.initSlotRuneImpl() ?: throw IllegalStateException("EnchantmentSlotLoader is not initialized")
+    init {
+        load()
     }
 
-    override fun reload() {
-        delegatesLoader?.initSlotRuneImpl() ?: throw IllegalStateException("EnchantmentSlotLoader is not initialized")
+    override fun load() {
+        enabled = loader.enabled()
+        costExp = loader.costExp()
+        itemProvider = loader.itemProvider()
+        id = loader.id()
     }
+
+    override fun reload() = load()
 
     override fun matches(itemStack: ItemStack): Boolean {
-        if (!isEnabled) return false
-        if (itemProvider?.getIdByItem(itemStack) == itemID) return true
+        if (enabled) {
+            return itemProvider!!.getIdByItem(itemStack) == id
+        }
         return false
     }
 

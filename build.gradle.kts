@@ -28,11 +28,19 @@ allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.gradleup.shadow")
 
+    // 属性
     group = "top.catnies"
     version = rootProject.libs.versions.plugin.version.get()
-    kotlin.jvmToolchain(21)
     java.sourceCompatibility = JavaVersion.VERSION_21
     java.targetCompatibility = JavaVersion.VERSION_21
+
+    // Kotlin 配置
+    kotlin {
+        jvmToolchain(21)
+        compilerOptions {
+            freeCompilerArgs.add("-Xjvm-default=all")
+        }
+    }
 
     repositories {
         mavenCentral()

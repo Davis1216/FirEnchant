@@ -1,23 +1,21 @@
 package top.catnies.firenchantkt.compatibility.customfishing;
 
 import net.momirealms.customfishing.api.BukkitCustomFishingPlugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import top.catnies.firenchantkt.integration.HookPluginLoader;
 
-public class CustomFishingLoader {
+public class CustomFishingLoader implements HookPluginLoader {
 
-    private static CustomFishingLoader instance;
+    private final JavaPlugin plugin;
 
-    private CustomFishingLoader(){}
-    public static CustomFishingLoader getInstance() {
-        if (instance == null) {
-            instance = new CustomFishingLoader();
-            BukkitCustomFishingPlugin.getInstance().getIntegrationManager().registerItemProvider(new CustomFishingProvider());
-            BukkitCustomFishingPlugin.getInstance().reload();
-        }
-        return instance;
+    public CustomFishingLoader(JavaPlugin plugin){
+        this.plugin = plugin;
     }
 
-    private void reload() {
-
+    @Override
+    public void load() {
+        BukkitCustomFishingPlugin.getInstance().getIntegrationManager().registerItemProvider(new CustomFishingProvider());
+        BukkitCustomFishingPlugin.getInstance().reload();
     }
 
 }
