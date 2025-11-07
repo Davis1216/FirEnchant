@@ -1,6 +1,7 @@
 package top.catnies.firenchantkt.gui.item
 
 import com.saicone.rtag.RtagItem
+import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
@@ -76,21 +77,23 @@ class MenuEnchantLineItem(
 
         // 执行附魔
         tableMenu.clearInputInventory() // 扣除物品
-        tableMenu.clearEnchantmentMenu() // 刷新菜单状态
+        TaskUtils.runAsyncTasksLater(tableMenu::clearEnchantmentMenu, delay = 0L) // 延迟刷新菜单状态
         player.setItemOnCursor(setting.toItemStack())
         player.enchantmentSeed = (0..Int.MAX_VALUE).random()
 
         // 执行动作
         functions.forEach { action ->
-            action.executeIfAllowed(mapOf("player" to player,))
+            action.executeIfAllowed(mapOf("player" to player))
         }
     }
 
+    // 渲染显示物品
     private fun renderOnlineItem(itemStack: ItemStack): ItemStack = onlineRender.renderItem(itemStack).also { item ->
         // 去除CE的ID, 防止发包给我盖了
         if (!isBook) RtagItem.edit(item) { it.remove("craftengine:id") }
     }
 
+    // 渲染不显示物品
     private fun renderOfflineItem(itemStack: ItemStack): ItemStack = offlineRender.renderItem(itemStack).also { item ->
         RtagItem.edit(item) {
             // 去除数据信息, 防止偷窥具体结果
@@ -99,6 +102,7 @@ class MenuEnchantLineItem(
         }
     }
 
+    // 异步记录附魔历史
     private fun recordEnchantingHistoryAsync(player: Player, inputItem: ItemStack, setting: EnchantmentSetting) {
         val historyTable = EnchantingHistoryTable().apply {
             playerId = player.uniqueId
