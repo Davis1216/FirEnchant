@@ -152,12 +152,7 @@ class FirEnchantedBook : EnchantedBook {
                 // 触发事件
                 val useEvent = EnchantedBookUseEvent(
                     player, event, anvilView, context.firstItem, setting, resultItem,
-                    isSuccess(player,
-                        originEnchantment.key.asString(),
-                        setting.level,
-                        anvilView.repairCost,
-                        setting.failure
-                    )
+                    isSuccess(player, setting, anvilView.repairCost)
                 )
                 Bukkit.getPluginManager().callEvent(useEvent)
                 if (useEvent.isCancelled) {
@@ -166,7 +161,7 @@ class FirEnchantedBook : EnchantedBook {
                 }
 
                 // 记录数据
-                val logData = AnvilEnchantLogTable().apply {
+                AnvilEnchantLogTable().apply {
                     this.player = player.uniqueId
                     usedEnchantment = originEnchantment.key.asString()
                     usedEnchantmentLevel = setting.level
@@ -174,11 +169,7 @@ class FirEnchantedBook : EnchantedBook {
                     failure = setting.failure.toShort()
                     isSuccess = useEvent.isSuccess
                     timestamp = System.currentTimeMillis()
-                }
-                TaskUtils.runAsyncTask {
-                    enchantLogData.insert(logData)
-                    cacheManager.addEnchantLog(logData)
-                }
+                }.let { saveToDatabaseAndCache(it) }
 
                 // 成功直接返回
                 if (useEvent.isSuccess) return
@@ -242,8 +233,10 @@ class FirEnchantedBook : EnchantedBook {
     }
 
     // 根据失败率判断是否成功
-    private fun isSuccess(player: Player, enchantment: String, enchantmentLevel: Int, anvilCostLevel: Int, baseFailure: Int): Boolean {
-        // 纯随机结果
+    private fun isSuccess(player: Player, setting: EnchantmentSetting, anvilCostLevel: Int): Boolean {
+        val baseFailure = setting.failure
+
+        // 先纯随机结果
         val random = (0..100).random()
         var adjustedFailure = baseFailure
         val success = (random > baseFailure)
@@ -254,6 +247,7 @@ class FirEnchantedBook : EnchantedBook {
             if (baseFailure >= config.EB_FAILURE_CORRECTION_MINMAX_MAX) return false
         }
 
+        // TODO 重写: 策略性选择判断方案
         // 如果启用 根据历史记录修正概率
         if (config.EB_FAILURE_CORRECTION_HISTORY_ENABLE) {
             // 获取玩家历史记录（最近20次）
