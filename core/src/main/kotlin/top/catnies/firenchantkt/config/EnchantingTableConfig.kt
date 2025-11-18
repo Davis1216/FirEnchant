@@ -10,7 +10,7 @@ import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.engine.ConfigActionTemplate
 import top.catnies.firenchantkt.engine.ConfigConditionTemplate
-import top.catnies.firenchantkt.item.enchantingtable.OriginalBookData
+import top.catnies.firenchantkt.item.enchantingtable.origin_book.OriginalBookData
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_MENU_STRUCTURE_ERROR
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_ORIGINAL_BOOK_INVALID_ENCHANTMENT
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_ORIGINAL_BOOK_MISSING_KEY
@@ -96,7 +96,7 @@ class EnchantingTableConfig private constructor():
     // 加载数据
     override fun loadConfig() {
         /*菜单设置*/
-        REPLACE_VANILLA_ENCHANTMENT_TABLE = config().getBoolean("replace-vanilla-enchantment-table", true)
+        REPLACE_VANILLA_ENCHANTMENT_TABLE = config().getBoolean("replace-vanilla-enchanting-table", true)
 
         MENU_TITLE_000 = config().getString("menu-setting.title-000", "000")!!
         MENU_TITLE_100 = config().getString("menu-setting.title-100", "100")!!

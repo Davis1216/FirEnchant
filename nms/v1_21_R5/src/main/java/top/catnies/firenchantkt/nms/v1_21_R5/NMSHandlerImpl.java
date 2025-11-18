@@ -129,9 +129,7 @@ public class NMSHandlerImpl implements NMSHandler {
         }
 
         List<Map<org.bukkit.enchantments.Enchantment, Integer>> results = new ArrayList<>();
-        for (int slot = 0; slot < costs.length; slot++) {
-            int cost = costs[slot];
-
+        for (int cost : costs) {
             List<EnchantmentInstance> resultList = new ArrayList<>(); // 结果集合
 
             // 迷之计算, 见 `net.minecraft.world.item.enchantment.EnchantmentHelper` 行 `536` .
@@ -168,8 +166,8 @@ public class NMSHandlerImpl implements NMSHandler {
             if (resultList.isEmpty()) continue;
             EnchantmentInstance enchantmentInstance = resultList.get(random.nextInt(resultList.size()));
 
-            Map<org.bukkit.enchantments.Enchantment, Integer> optionMap = new HashMap<>();
-            org.bukkit.enchantments.Enchantment enchant = CraftEnchantment.minecraftHolderToBukkit(enchantmentInstance.enchantment());
+            Map<Enchantment, Integer> optionMap = new HashMap<>();
+            Enchantment enchant = CraftEnchantment.minecraftHolderToBukkit(enchantmentInstance.enchantment());
             optionMap.put(enchant, enchantmentInstance.level());
 
             results.add(optionMap);
