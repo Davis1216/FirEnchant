@@ -4,6 +4,7 @@ import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
+import top.catnies.firenchantkt.config.SettingsConfig
 import top.catnies.firenchantkt.integration.NMSHandlerHolder
 import java.util.concurrent.ConcurrentHashMap
 
@@ -17,7 +18,7 @@ object EnchantmentUtils {
         val enchantmentsCache = ENCHANT_CACHE[item.type]
         if (enchantmentsCache != null) return enchantmentsCache
 
-        val tableEnchantmentList = NMSHandlerHolder.getNMSHandler().getEnchantmentTableEnchantmentList(Bukkit.getWorlds().first())
+        val tableEnchantmentList = NMSHandlerHolder.getNMSHandler().getEnchantmentTableEnchantmentList(Bukkit.getWorlds().first(), SettingsConfig.instance.REGISTRY)
         if (item.type == Material.BOOK) {
             ENCHANT_CACHE[item.type] = tableEnchantmentList
             return tableEnchantmentList
