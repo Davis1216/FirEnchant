@@ -10,6 +10,7 @@ import io.papermc.paper.command.brigadier.argument.ArgumentTypes
 import io.papermc.paper.command.brigadier.argument.resolvers.selector.PlayerSelectorArgumentResolver
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.command.AbstractCommand
+import top.catnies.firenchantkt.config.SettingsConfig
 import top.catnies.firenchantkt.integration.NMSHandlerHolder
 
 object GetNextEnchantingTableResultCommand : AbstractCommand() {
@@ -34,7 +35,7 @@ object GetNextEnchantingTableResultCommand : AbstractCommand() {
         val item = context.getArgument("item", ItemStack::class.java)
 
         val result = NMSHandlerHolder.getNMSHandler()
-                .getPlayerNextEnchantmentTableResultByItemStack(player, count.toInt(), ItemStack(item.type))
+                .getPlayerNextEnchantmentTableResultByItemStack(player, count.toInt(), item, SettingsConfig.instance.REGISTRY)
         println(result)
 
         return Command.SINGLE_SUCCESS

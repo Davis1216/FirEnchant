@@ -149,7 +149,8 @@ public class NMSHandlerImpl implements NMSHandler {
 
                 // 计算出具体的附魔, 见 `net.minecraft.world.item.enchantment.EnchantmentHelper` 行 `581` .
                 for (int level1 = enchantment.getMaxLevel(); level1 >= enchantment.getMinLevel(); level1--) {
-                    if (level >= enchantment.getMinCost(level1) && level <= enchantment.getMaxCost(level1)) {
+//                    if (level >= enchantment.getMinCost(level1) && level <= enchantment.getMaxCost(level1)) {
+                    if (level >= enchantment.getMinCost(level1)) {
                         tempList.add(new EnchantmentInstance(holder, level1));
                         break;
                     }
