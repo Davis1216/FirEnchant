@@ -32,7 +32,7 @@ public interface NMSHandler {
      *
      * @return 附魔列表
      */
-    Set<Enchantment> getEnchantmentTableEnchantmentList(World world);
+    Set<Enchantment> getEnchantmentTableEnchantmentList(World world, EnchantmentRegistryType registryType);
 
     /**
      * 获取玩家下次使用指定物品附魔的结果列表
@@ -42,7 +42,7 @@ public interface NMSHandler {
      * @param itemStack 物品实例
      * @return 附魔结果列表
      */
-    List<Map<Enchantment, Integer>> getPlayerNextEnchantmentTableResultByItemStack(Player player, int bookShelfCount, ItemStack itemStack);
+    List<Map<Enchantment, Integer>> getPlayerNextEnchantmentTableResultByItemStack(Player player, int bookShelfCount, ItemStack itemStack, EnchantmentRegistryType registryType);
 
     /**
      * 获取玩家下次使用指定物品附魔的结果列表

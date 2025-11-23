@@ -4,6 +4,11 @@ file-version: 1
 # 服务端语言配置, 请确保语言缩写是Locale可识别的, 如 en, zh_CN, zh_TW 等.
 language: "zh-CN"
 
+# 附魔读取方式
+# 如果不兼容部分附魔插件, 请尝试切换至bukkit模式
+# 方式: "nms, bukkit"
+registry: "nms"
+
 # 数据库配置
 # 修改数据库需要重启服务器, 请注意, 切换数据库时旧数据不会自动迁移.
 database:
