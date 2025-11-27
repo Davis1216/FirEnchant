@@ -92,6 +92,7 @@ class FirEnchantmentManager private constructor(): EnchantmentManager {
                     hookedID = hookedID,
                     itemName = cfg.getString("item-name", "<firenchant:enchantment> <firenchant:level_roman>")!!,
                     itemLore = cfg.getStringList("item-lore"),
+                    glint = cfg.getBoolean("glint", false),
                     cacheItem = hookedItem // 把物品缓存一下
                 )
             }

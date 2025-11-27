@@ -9,7 +9,6 @@ import top.catnies.firenchantkt.enchantment.EnchantmentSetting
 import top.catnies.firenchantkt.gui.item.MenuCustomItem
 import top.catnies.firenchantkt.gui.item.MenuEnchantLineItem
 import top.catnies.firenchantkt.item.FirEnchantingTableRegistry
-import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.MessageUtils.wrapTitle
 import top.catnies.firenchantkt.util.PlayerUtils.giveOrDropList
 import top.catnies.firenchantkt.util.TaskUtils
@@ -49,13 +48,12 @@ class FirEnchantingTableMenu(
     val inputSlot = config.MENU_INPUT_SLOT
     val customItems = config.MENU_CUSTOM_ITEMS
 
-    val enchantmentLine1Slot = config.MENU_SHOW_ENCHANTMENT_LINE_1_SLOT
-    val enchantmentLine2Slot = config.MENU_SHOW_ENCHANTMENT_LINE_2_SLOT
-    val enchantmentLine3Slot = config.MENU_SHOW_ENCHANTMENT_LINE_3_SLOT
-    val enchantmentBook1Slot = config.MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_SLOT
-    val enchantmentBook2Slot = config.MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_SLOT
-    val enchantmentBook3Slot = config.MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_SLOT
-
+    val enchantmentLine1 = config.MENU_SHOW_ENCHANTMENT_LINE_1!!
+    val enchantmentLine2 = config.MENU_SHOW_ENCHANTMENT_LINE_2!!
+    val enchantmentLine3 = config.MENU_SHOW_ENCHANTMENT_LINE_3!!
+    val enchantmentBook1 = config.MENU_SHOW_ENCHANTMENT_BOOK_1!!
+    val enchantmentBook2 = config.MENU_SHOW_ENCHANTMENT_BOOK_2!!
+    val enchantmentBook3 = config.MENU_SHOW_ENCHANTMENT_BOOK_3!!
     var conditionLine1 = config.ENCHANT_COST_LINE_1_CONDITIONS
     var conditionLine2 = config.ENCHANT_COST_LINE_2_CONDITIONS
     var conditionLine3 = config.ENCHANT_COST_LINE_3_CONDITIONS
@@ -63,44 +61,24 @@ class FirEnchantingTableMenu(
     var actionLine2 = config.ENCHANT_COST_LINE_2_ACTIONS
     var actionLine3 = config.ENCHANT_COST_LINE_3_ACTIONS
 
-    val enchantmentOnline1 = config.MENU_SHOW_ENCHANTMENT_LINE_1_ONLINE
-    val enchantmentOnline2 = config.MENU_SHOW_ENCHANTMENT_LINE_2_ONLINE
-    val enchantmentOnline3 = config.MENU_SHOW_ENCHANTMENT_LINE_3_ONLINE
-    val enchantmentOffline1 = config.MENU_SHOW_ENCHANTMENT_LINE_1_OFFLINE
-    val enchantmentOffline2 = config.MENU_SHOW_ENCHANTMENT_LINE_2_OFFLINE
-    val enchantmentOffline3 = config.MENU_SHOW_ENCHANTMENT_LINE_3_OFFLINE
-    val enchantmentBookOnline1 = config.MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_ONLINE
-    val enchantmentBookOnline2 = config.MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_ONLINE
-    val enchantmentBookOnline3 = config.MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_ONLINE
-    val enchantmentBookOffline1 = config.MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_OFFLINE
-    val enchantmentBookOffline2 = config.MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_OFFLINE
-    val enchantmentBookOffline3 = config.MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_OFFLINE
-
     var enchantable = 0
     var activeLine = -1
     var lineStatus: String = "000"
-
     private val enchantmentSettings = arrayOfNulls<EnchantmentSetting>(3)
-    var settingLine1: EnchantmentSetting?
-        get() = enchantmentSettings[0]
-        set(value) { enchantmentSettings[0] = value }
-    var settingLine2: EnchantmentSetting?
-        get() = enchantmentSettings[1]
-        set(value) { enchantmentSettings[1] = value }
-    var settingLine3: EnchantmentSetting?
-        get() = enchantmentSettings[2]
-        set(value) { enchantmentSettings[2] = value }
+    private val enchantingTableContext by lazy { EnchantingTableContext(player, bookShelves, this) }
+    // 如果关闭菜单则返回输入框里的所有物品.
+    private val closeHandlers: MutableList<Runnable> = mutableListOf(
+        Runnable {
+            val itemStacks = inputInventory.items.toList().filterNotNull()
+            player.giveOrDropList(itemStacks)
+        }
+    )
 
     lateinit var gui: Gui
     lateinit var window: Window
     lateinit var inputInventory: VirtualInventory
-    private lateinit var selectBottoms: Array<MenuEnchantLineItem>
-    private lateinit var bookBottoms: Array<MenuEnchantLineItem>
-
-    private val enchantingTableContext by lazy { EnchantingTableContext(player, bookShelves, this) }
-
-    // 关闭菜单时触发
-    var closeHandlers: MutableList<Runnable> = mutableListOf()
+    private lateinit var lineBottoms: List<MenuEnchantLineItem>
+    private lateinit var bookBottoms: List<MenuEnchantLineItem>
 
     // 创建并且打开菜单
     override fun openMenu(data: Map<String, Any>, async: Boolean) {
@@ -109,7 +87,6 @@ class FirEnchantingTableMenu(
             buildLineBottoms()
             buildGuiAndWindow()
         }
-
         if (async) {
             TaskUtils.runAsyncTaskWithSyncCallback(
                 async = buildTask,
@@ -119,7 +96,6 @@ class FirEnchantingTableMenu(
             buildTask()
             window.open()
         }
-
     }
 
     // 创建基础组件
@@ -144,37 +120,20 @@ class FirEnchantingTableMenu(
                 clearEnchantmentMenu()
             }
         }
-
-        // 如果关闭菜单则返回输入框里的所有物品.
-        closeHandlers.add {
-            val itemStacks = inputInventory.items.toList().filterNotNull()
-            player.giveOrDropList(itemStacks)
-        }
     }
 
     // 创建附魔栏物品
     private fun buildLineBottoms() {
-        // 配置数据数组，便于批量创建
-        val lineConfigs = arrayOf(
-            Triple(conditionLine1, actionLine1, 1),
-            Triple(conditionLine2, actionLine2, 2),
-            Triple(conditionLine3, actionLine3, 3)
+        lineBottoms = listOf(
+            MenuEnchantLineItem(this, conditionLine1, actionLine1, 1, enchantmentLine1.onlineRender, enchantmentLine1.offlineRender, false),
+            MenuEnchantLineItem(this, conditionLine2, actionLine2, 2, enchantmentLine2.onlineRender, enchantmentLine2.offlineRender, false),
+            MenuEnchantLineItem(this, conditionLine3, actionLine3, 3, enchantmentLine3.onlineRender, enchantmentLine3.offlineRender, false)
         )
-
-        val onlineConfigs = arrayOf(enchantmentOnline1, enchantmentOnline2, enchantmentOnline3)
-        val offlineConfigs = arrayOf(enchantmentOffline1, enchantmentOffline2, enchantmentOffline3)
-        val bookOnlineConfigs = arrayOf(enchantmentBookOnline1, enchantmentBookOnline2, enchantmentBookOnline3)
-        val bookOfflineConfigs = arrayOf(enchantmentBookOffline1, enchantmentBookOffline2, enchantmentBookOffline3)
-
-        selectBottoms = Array(3) { i ->
-            MenuEnchantLineItem(this, lineConfigs[i].third, lineConfigs[i].first,
-                lineConfigs[i].second, onlineConfigs[i], offlineConfigs[i])
-        }
-
-        bookBottoms = Array(3) { i ->
-            MenuEnchantLineItem(this, lineConfigs[i].third, lineConfigs[i].first,
-                lineConfigs[i].second, bookOnlineConfigs[i], bookOfflineConfigs[i])
-        }
+        bookBottoms = listOf(
+            MenuEnchantLineItem(this, conditionLine1, actionLine1, 1, enchantmentBook1.onlineRender, enchantmentBook1.offlineRender, true),
+            MenuEnchantLineItem(this, conditionLine2, actionLine2, 2, enchantmentBook2.onlineRender, enchantmentBook2.offlineRender, true),
+            MenuEnchantLineItem(this, conditionLine3, actionLine3, 3, enchantmentBook3.onlineRender, enchantmentBook3.offlineRender, true)
+        )
     }
 
     // 创建 GUI & Window
@@ -182,17 +141,14 @@ class FirEnchantingTableMenu(
         gui = Gui.normal()
             .setStructure(Structure(*structureArray))
             .addIngredient(inputSlot, inputInventory)
-
-            .addIngredient(enchantmentLine1Slot, selectBottoms[0])
-            .addIngredient(enchantmentLine2Slot, selectBottoms[1])
-            .addIngredient(enchantmentLine3Slot, selectBottoms[2])
-            .addIngredient(enchantmentBook1Slot, bookBottoms[0])
-            .addIngredient(enchantmentBook2Slot, bookBottoms[1])
-            .addIngredient(enchantmentBook3Slot, bookBottoms[2])
-
+            .addIngredient(enchantmentLine1.slot, lineBottoms[0])
+            .addIngredient(enchantmentLine2.slot, lineBottoms[1])
+            .addIngredient(enchantmentLine3.slot, lineBottoms[2])
+            .addIngredient(enchantmentBook1.slot, bookBottoms[0])
+            .addIngredient(enchantmentBook2.slot, bookBottoms[1])
+            .addIngredient(enchantmentBook3.slot, bookBottoms[2])
             .apply { addCustomItems(this) }
             .build()
-
         window = Window.single {
             it.setViewer(player)
             it.setTitle(titleMap["222"]!!.wrapTitle(player))
@@ -205,11 +161,10 @@ class FirEnchantingTableMenu(
     // 添加自定义物品
     private fun addCustomItems(building: Gui.Builder.Normal) {
         customItems.asSequence()
-            .filterNot { it.value.first.nullOrAir() }
-            .filter { getMarkCount(it.key) > 0 }
-            .forEach { (char, pair) ->
-                val menuCustomItem = MenuCustomItem({ s -> pair.first!! }, pair.second)
-                building.addIngredient(char, menuCustomItem)
+            .filter { getMarkCount(it.slot) > 0 }
+            .forEach { data ->
+                val menuCustomItem = MenuCustomItem({ _ -> data.item.renderItem(player) }, data.action)
+                building.addIngredient(data.slot, menuCustomItem)
             }
     }
 
@@ -235,14 +190,12 @@ class FirEnchantingTableMenu(
 
         // 优化状态计算
         lineStatus = calculateLineStatus()
-
         return activeLine
     }
 
     // 计算菜单状态逻辑
     private fun calculateLineStatus(): String {
         val hasSettings = enchantmentSettings.map { it != null }
-
         return when {
             hasSettings.all { it } -> when (activeLine) {
                 0 -> "000"
@@ -264,7 +217,7 @@ class FirEnchantingTableMenu(
     // 刷新附魔栏位
     override fun refreshLine() {
         titleMap[lineStatus]?.let { window.changeTitle(it.wrapTitle(player)) }
-        selectBottoms.forEach { it.notifyWindows() }
+        lineBottoms.forEach { it.notifyWindows() }
         bookBottoms.forEach { it.notifyWindows() }
     }
 

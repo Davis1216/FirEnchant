@@ -23,8 +23,4 @@ class ConfigManager private constructor() {
         }
     }
 
-    // 加载延迟加载的配置
-    fun loadConfigsLatePart() {
-        configs.forEach { it.loadLatePart() }
-    }
 }

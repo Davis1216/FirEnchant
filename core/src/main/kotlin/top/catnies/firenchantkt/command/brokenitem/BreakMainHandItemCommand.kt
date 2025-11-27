@@ -19,7 +19,7 @@ object BreakMainHandItemCommand: AbstractCommand() {
 
     override fun create(): LiteralArgumentBuilder<CommandSourceStack> =
         Commands.literal("breakMianHandItem")
-            .executes { FixMainHandItemCommand.execute(it) }
+            .executes { execute(it) }
             .then(Commands.argument("player", ArgumentTypes.player())
                 .executes { execute(it) }
             )

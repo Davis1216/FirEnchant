@@ -17,9 +17,10 @@ data class EnchantmentData (
     val itemProvider: ItemProvider,
     val hookedID: String,
 
-    // 物品的名称和Lore描述, 未解析的.
+    // 物品的其他属性
     val itemName: String,
     val itemLore: List<String>?,
+    val glint: Boolean,
 
     // 理论上加载和重载时便会填充刷新，不应为空。
     var cacheItem: ItemStack? = null

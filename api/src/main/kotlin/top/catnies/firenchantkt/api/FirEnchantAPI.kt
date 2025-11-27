@@ -147,7 +147,6 @@ object FirEnchantAPI {
     @Nullable
     fun repairBrokenGear(item: ItemStack): ItemStack? {
         val brokenGear = ServiceContainer.get(BrokenGear::class.java)
-        if (!brokenGear.isBrokenGear(item)) return item
         return brokenGear.repairBrokenGear(item)
     }
 

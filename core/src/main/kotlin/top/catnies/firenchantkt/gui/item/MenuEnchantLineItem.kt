@@ -1,7 +1,8 @@
 package top.catnies.firenchantkt.gui.item
 
+import com.saicone.rtag.RtagItem
+import kotlinx.coroutines.delay
 import org.bukkit.Bukkit
-import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.entity.Player
 import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
@@ -10,48 +11,43 @@ import top.catnies.firenchantkt.api.event.enchantingtable.EnchantItemEvent
 import top.catnies.firenchantkt.database.FirCacheManager
 import top.catnies.firenchantkt.database.FirConnectionManager
 import top.catnies.firenchantkt.database.entity.EnchantingHistoryTable
+import top.catnies.firenchantkt.enchantment.EnchantmentSetting
 import top.catnies.firenchantkt.engine.ConfigActionTemplate
 import top.catnies.firenchantkt.engine.ConfigConditionTemplate
 import top.catnies.firenchantkt.gui.FirEnchantingTableMenu
-import top.catnies.firenchantkt.util.ConfigParser
 import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.ItemUtils.serializeToBytes
 import top.catnies.firenchantkt.util.TaskUtils
+import top.catnies.firenchantkt.util.resource_wrapper.ItemRender
 import xyz.xenondevs.invui.item.ItemProvider
 import xyz.xenondevs.invui.item.impl.AbstractItem
 
 class MenuEnchantLineItem(
     val tableMenu: FirEnchantingTableMenu,
-    val lineIndex: Int,
     var conditions: List<ConfigConditionTemplate>,
-    var actions: List<ConfigActionTemplate>,
-    var onlineSection: ConfigurationSection?,
-    var offlineSection: ConfigurationSection?
+    var functions: List<ConfigActionTemplate>,
+    val lineIndex: Int,
+    var onlineRender: ItemRender,
+    var offlineRender: ItemRender,
+    var isBook: Boolean = false
 ): AbstractItem() {
 
     var canEnchant: Boolean = false
 
     override fun getItemProvider() = ItemProvider{ string ->
-        val enchantmentSetting = tableMenu.getEnchantmentSettingByLine(lineIndex)
-
         // 未设置时直接返回空
-        if (enchantmentSetting == null) {
+        val enchantmentSetting = tableMenu.getEnchantmentSettingByLine(lineIndex) ?: return@ItemProvider ItemStack.empty().also {
             canEnchant = false
-            return@ItemProvider ItemStack.empty()
         }
-
         // 如果条件符合
         val itemStack = enchantmentSetting.toItemStack()
         if (tableMenu.activeLine >= lineIndex) {
             canEnchant = true
-            onlineSection?.let { ConfigParser.parseItemFromConfigWithBaseItem(itemStack, it) }
-            return@ItemProvider itemStack
+            return@ItemProvider renderOnlineItem(itemStack)
         }
-
         // 如果条件不符合
         canEnchant = false
-        offlineSection?.let { ConfigParser.parseItemFromConfigWithBaseItem(itemStack, it) }
-        return@ItemProvider itemStack
+        return@ItemProvider renderOfflineItem(itemStack)
     }
 
     override fun handleClick(
@@ -77,6 +73,37 @@ class MenuEnchantLineItem(
         if (enchantItemEvent.isCancelled) return
 
         // 记录缓存和数据
+        recordEnchantingHistoryAsync(player, inputItem, setting)
+
+        // 执行附魔
+        tableMenu.clearInputInventory() // 扣除物品
+        TaskUtils.runAsyncTasksLater(tableMenu::clearEnchantmentMenu, delay = 0L) // 延迟刷新菜单状态
+        player.setItemOnCursor(setting.toItemStack())
+        player.enchantmentSeed = (0..Int.MAX_VALUE).random()
+
+        // 执行动作
+        functions.forEach { action ->
+            action.executeIfAllowed(mapOf("player" to player))
+        }
+    }
+
+    // 渲染显示物品
+    private fun renderOnlineItem(itemStack: ItemStack): ItemStack = onlineRender.renderItem(itemStack).also { item ->
+        // 去除CE的ID, 防止发包给我盖了
+        if (!isBook) RtagItem.edit(item) { it.remove("craftengine:id") }
+    }
+
+    // 渲染不显示物品
+    private fun renderOfflineItem(itemStack: ItemStack): ItemStack = offlineRender.renderItem(itemStack).also { item ->
+        RtagItem.edit(item) {
+            // 去除数据信息, 防止偷窥具体结果
+            it.remove("FirEnchant")
+            if (!isBook) it.remove("craftengine:id")
+        }
+    }
+
+    // 异步记录附魔历史
+    private fun recordEnchantingHistoryAsync(player: Player, inputItem: ItemStack, setting: EnchantmentSetting) {
         val historyTable = EnchantingHistoryTable().apply {
             playerId = player.uniqueId
             inputItemData = inputItem.serializeToBytes()
@@ -91,21 +118,6 @@ class MenuEnchantLineItem(
         TaskUtils.runAsyncTask {
             FirCacheManager.getInstance().addEnchantingHistory(historyTable)
             FirConnectionManager.getInstance().enchantingHistoryData.create(historyTable)
-        }
-
-        // 执行附魔
-        tableMenu.clearInputInventory() // 扣除物品
-        tableMenu.clearEnchantmentMenu() // 刷新菜单状态
-        player.setItemOnCursor(setting.toItemStack())
-        player.enchantmentSeed = (0..Int.MAX_VALUE).random()
-
-        // 执行动作
-        actions.forEach { action ->
-            action.executeIfAllowed(
-                mapOf(
-                    "player" to player,
-                )
-            )
         }
     }
 

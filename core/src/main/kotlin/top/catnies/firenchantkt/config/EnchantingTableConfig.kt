@@ -5,13 +5,12 @@ import io.papermc.paper.registry.RegistryKey
 import net.kyori.adventure.key.Key
 import org.bukkit.Bukkit
 import org.bukkit.Material
-import org.bukkit.configuration.ConfigurationSection
 import org.bukkit.configuration.file.YamlConfiguration
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.engine.ConfigActionTemplate
 import top.catnies.firenchantkt.engine.ConfigConditionTemplate
-import top.catnies.firenchantkt.item.enchantingtable.OriginalBookData
+import top.catnies.firenchantkt.item.enchantingtable.origin_book.OriginalBookData
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_MENU_STRUCTURE_ERROR
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_ORIGINAL_BOOK_INVALID_ENCHANTMENT
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_ORIGINAL_BOOK_MISSING_KEY
@@ -22,6 +21,8 @@ import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
 import top.catnies.firenchantkt.util.ResourceCopyUtils
 import top.catnies.firenchantkt.util.YamlUtils
 import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
+import top.catnies.firenchantkt.util.resource_wrapper.ETMenuItemData
+import top.catnies.firenchantkt.util.resource_wrapper.MenuItemData
 import xyz.xenondevs.invui.gui.structure.Structure
 
 class EnchantingTableConfig private constructor():
@@ -54,27 +55,14 @@ class EnchantingTableConfig private constructor():
     var MENU_TITLE_102: String by ConfigProperty("102")
     var MENU_STRUCTURE_ARRAY: Array<String> by ConfigProperty(fallbackMenuStructure)    // 菜单结构
     var MENU_INPUT_SLOT: Char by ConfigProperty('I')                                    // 放入物品的槽位
-    var MENU_CUSTOM_ITEMS: Map<Char, Pair<ItemStack?, List<ConfigActionTemplate>>> by ConfigProperty(emptyMap())    // 菜单中的自定义物品
+    var MENU_CUSTOM_ITEMS: Set<MenuItemData> by ConfigProperty(mutableSetOf())          // 菜单中的自定义物品
 
-    var MENU_SHOW_ENCHANTMENT_LINE_1_SLOT: Char by ConfigProperty('a')
-    var MENU_SHOW_ENCHANTMENT_LINE_2_SLOT: Char by ConfigProperty('b')
-    var MENU_SHOW_ENCHANTMENT_LINE_3_SLOT: Char by ConfigProperty('c')
-    var MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_SLOT: Char by ConfigProperty('A')
-    var MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_SLOT: Char by ConfigProperty('B')
-    var MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_SLOT: Char by ConfigProperty('C')
-
-    var MENU_SHOW_ENCHANTMENT_LINE_1_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_1_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_ONLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_OFFLINE: ConfigurationSection? by ConfigProperty(null)
-    var MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_OFFLINE: ConfigurationSection? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_LINE_1: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_LINE_2: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_LINE_3: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_BOOK_1: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_BOOK_2: ETMenuItemData? by ConfigProperty(null)
+    var MENU_SHOW_ENCHANTMENT_BOOK_3: ETMenuItemData? by ConfigProperty(null)
 
     var ENCHANT_COST_LINE_1_MIN_FAILURE: Int by ConfigProperty(0)
     var ENCHANT_COST_LINE_2_MIN_FAILURE: Int by ConfigProperty(0)
@@ -88,7 +76,6 @@ class EnchantingTableConfig private constructor():
     var ENCHANT_COST_LINE_1_CONDITIONS: List<ConfigConditionTemplate> by ConfigProperty(listOf())
     var ENCHANT_COST_LINE_2_CONDITIONS: List<ConfigConditionTemplate> by ConfigProperty(listOf())
     var ENCHANT_COST_LINE_3_CONDITIONS: List<ConfigConditionTemplate> by ConfigProperty(listOf())
-
 
     /*附魔书*/
     var ORIGINAL_BOOK_MATCHES: MutableList<OriginalBookData> by ConfigProperty(mutableListOf())
@@ -109,7 +96,7 @@ class EnchantingTableConfig private constructor():
     // 加载数据
     override fun loadConfig() {
         /*菜单设置*/
-        REPLACE_VANILLA_ENCHANTMENT_TABLE = config().getBoolean("replace-vanilla-enchantment-table", true)
+        REPLACE_VANILLA_ENCHANTMENT_TABLE = config().getBoolean("replace-vanilla-enchanting-table", true)
 
         MENU_TITLE_000 = config().getString("menu-setting.title-000", "000")!!
         MENU_TITLE_100 = config().getString("menu-setting.title-100", "100")!!
@@ -127,25 +114,12 @@ class EnchantingTableConfig private constructor():
             Bukkit.getConsoleSender().sendTranslatableComponent(RESOURCE_MENU_STRUCTURE_ERROR, fileName) }
         MENU_INPUT_SLOT = config().getString("menu-setting.input-slot", "I")?.first() ?: 'I'
 
-        MENU_SHOW_ENCHANTMENT_LINE_1_SLOT = config().getString("menu-setting.show-enchantment-slot.line-1.slot", "a")?.first() ?: 'a'
-        MENU_SHOW_ENCHANTMENT_LINE_2_SLOT = config().getString("menu-setting.show-enchantment-slot.line-2.slot", "b")?.first() ?: 'b'
-        MENU_SHOW_ENCHANTMENT_LINE_3_SLOT = config().getString("menu-setting.show-enchantment-slot.line-3.slot", "c")?.first() ?: 'c'
-        MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_SLOT = config().getString("menu-setting.show-enchantment-slot.line-1-book.slot", "A")?.first() ?: 'A'
-        MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_SLOT = config().getString("menu-setting.show-enchantment-slot.line-2-book.slot", "B")?.first() ?: 'B'
-        MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_SLOT = config().getString("menu-setting.show-enchantment-slot.line-3-book.slot", "C")?.first() ?: 'C'
-
-        MENU_SHOW_ENCHANTMENT_LINE_1_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1.online")
-        MENU_SHOW_ENCHANTMENT_LINE_2_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2.online")
-        MENU_SHOW_ENCHANTMENT_LINE_3_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3.online")
-        MENU_SHOW_ENCHANTMENT_LINE_1_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_2_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_3_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1-book.online")
-        MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2-book.online")
-        MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_ONLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3-book.online")
-        MENU_SHOW_ENCHANTMENT_LINE_1_BOOK_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1-book.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_2_BOOK_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2-book.offline")
-        MENU_SHOW_ENCHANTMENT_LINE_3_BOOK_OFFLINE = config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3-book.offline")
+        MENU_SHOW_ENCHANTMENT_LINE_1 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1")!!, 'a', false, fileName)
+        MENU_SHOW_ENCHANTMENT_LINE_2 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2")!!, 'b', false, fileName)
+        MENU_SHOW_ENCHANTMENT_LINE_3 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3")!!, 'c', false, fileName)
+        MENU_SHOW_ENCHANTMENT_BOOK_1 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-1-book")!!, 'A', true, fileName)
+        MENU_SHOW_ENCHANTMENT_BOOK_2 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-2-book")!!, 'B', true, fileName)
+        MENU_SHOW_ENCHANTMENT_BOOK_3 = ETMenuItemData.getETMenuItemDataBySection(config().getConfigurationSection("menu-setting.show-enchantment-slot.line-3-book")!!, 'C', true, fileName)
 
         ENCHANT_COST_LINE_1_MIN_FAILURE = config().getInt("enchant-cost.line-1.min-failure", 0)
         ENCHANT_COST_LINE_2_MIN_FAILURE = config().getInt("enchant-cost.line-2.min-failure", 0)
@@ -167,27 +141,18 @@ class EnchantingTableConfig private constructor():
             RENEWAL_BOOK_ITEM_PROVIDER = config().getString("renewal-book.hooked-plugin", null)
             RENEWAL_BOOK_ITEM_ID = config().getString("renewal-book.hooked-id", null)
         }
-    }
 
-    // 等待注册表完成后延迟加载的部分
-    override fun loadLatePartConfig() {
         // 自定义物品
         config().getConfigurationSection("menu-setting.custom-items")?.let { customItemsSection ->
-            val customItems = mutableMapOf<Char, Pair<ItemStack?, List<ConfigActionTemplate>>>() // 创建结果列表
+            val customItems = mutableSetOf<MenuItemData>() // 创建结果列表
             customItemsSection.getKeys(false).forEach { itemSectionKey ->
                 // 解析物品节点如 'X', '?' 等节点
-                val itemSection = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
-                itemSection?.let { section ->
-                    // 使用节点构建物品
-                    val itemStack = ConfigParser.parseItemFromConfig(section, fileName, itemSectionKey)
-                    // 获取动作节点, 解析动作
-                    val actionList = section.getConfigurationSectionList("click-actions")
-                    val actionTemplates = actionList.mapNotNull { actionNode ->
-                        ConfigParser.parseActionTemplate(actionNode, fileName, itemSectionKey)
-                    }
-                    if (itemStack.nullOrAir()) return@forEach // 如果物品是空则跳过保存, 延迟处理是想要继续解析物品动作一类的并给予警告, 虽然物品无效整个节点都无效就是了.
+                val itemSections = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
+                itemSections?.let { section ->
                     // 保存到结果列表里
-                    customItems[itemSectionKey.first()] = itemStack to actionTemplates
+                    customItems.add(
+                        MenuItemData.getMenuItemDataBySection(section, itemSectionKey.first(), fileName)
+                    )
                 }
             }
             MENU_CUSTOM_ITEMS = customItems

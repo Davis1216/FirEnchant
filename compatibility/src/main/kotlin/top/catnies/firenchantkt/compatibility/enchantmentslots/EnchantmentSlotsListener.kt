@@ -5,12 +5,14 @@ import org.bukkit.event.Listener
 import top.catnies.firenchantkt.api.event.anvil.AnvilApplicableItemRegisterEvent
 import top.catnies.firenchantkt.api.event.anvil.EnchantedBookPreUseEvent
 
-class EnchantmentSlotsListener: Listener {
+class EnchantmentSlotsListener(
+    val loader: EnchantmentSlotsLoader
+): Listener {
 
     // 注册附魔槽位相关物品
     @EventHandler
     fun onAnvilItemRegister(event: AnvilApplicableItemRegisterEvent) {
-        event.register.registerItem(SlotRuneImpl())
+        event.register.registerItem(FirSlotRune(loader))
     }
 
     // 监听使用附魔书事件, 如果槽位不够则不处理

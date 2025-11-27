@@ -1,5 +1,7 @@
 package top.catnies.firenchantkt.config
 
+import top.catnies.firenchantkt.nms.EnchantmentRegistryType
+
 class SettingsConfig private constructor():
     AbstractConfigFile("settings.yml")
 {
@@ -11,6 +13,9 @@ class SettingsConfig private constructor():
 
     /* 基础配置 */
     var LANGUAGE: String by ConfigProperty("zh_CN") // 语言
+
+    /* 附魔列表获取方式 */
+    var REGISTRY: EnchantmentRegistryType = EnchantmentRegistryType.NMS
 
     /* 数据库 */
     var DATABASE_TYPE: String by ConfigProperty("SQLite")
@@ -24,6 +29,8 @@ class SettingsConfig private constructor():
     override fun loadConfig() {
         LANGUAGE = config().getString("language", "zh_CN")!!
 
+        REGISTRY = EnchantmentRegistryType.valueOf(config().getString("registry", "nms")!!.uppercase())
+
         DATABASE_TYPE = config().getString("database.type", "h2")!!
         DATABASE_SQLITE_FILE = config().getString("database.sqlite.file", "database.db")!!
         DATABASE_MYSQL_JDBC_URL = config().getString("database.mysql.jdbc-url", "jdbc:mysql://127.0.0.1:3306/minecraft")!!
@@ -31,7 +38,5 @@ class SettingsConfig private constructor():
         DATABASE_MYSQL_USER = config().getString("database.mysql.properties.user", "root")!!
         DATABASE_MYSQL_PASSWORD = config().getString("database.mysql.properties.password", "root")!!
     }
-
-    override fun loadLatePartConfig() {}
 
 }

@@ -44,7 +44,7 @@ object FixMainHandItemCommand: AbstractCommand() {
             return Command.SINGLE_SUCCESS
         }
         context.source.sender.sendTranslatableComponent(COMMAND_BROKEN_GEAR_FIX_MAIN_HAND_SUCCESS, player.name)
-        player.giveOrDrop(repairBrokenGear)
+        player.inventory.setItemInMainHand(repairBrokenGear)
         return Command.SINGLE_SUCCESS
     }
 

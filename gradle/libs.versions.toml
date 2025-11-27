@@ -1,7 +1,7 @@
 [versions]
-plugin-version = "3.0.0"
+plugin-version = "3.0.3"
 # Plugins
-kotlin = "2.1.21"
+kotlin = "2.2.20"
 shadow = "9.0.0-beta6"
 runpaper = "2.3.1"
 paperweight = "2.0.0-beta.17"
@@ -19,7 +19,7 @@ hikaricp = "6.1.0"
 
 # Library
 rtag = "1.5.11"
-invui = "1.46"
+invui = "1.47"
 mhdf-scheduler = "1.0.1"
 
 # Compatibility
@@ -66,6 +66,7 @@ invui-access-r21 = { module = "xyz.xenondevs.invui:inventory-access-r21",  versi
 invui-access-r22 = { module = "xyz.xenondevs.invui:inventory-access-r22",  version.ref = "invui" }
 invui-access-r23 = { module = "xyz.xenondevs.invui:inventory-access-r23",  version.ref = "invui" }
 invui-access-r24 = { module = "xyz.xenondevs.invui:inventory-access-r24",  version.ref = "invui" }
+invui-access-r25 = { module = "xyz.xenondevs.invui:inventory-access-r25",  version.ref = "invui" }
 
 # Compatibility
 nexo = { module = "com.nexomc:nexo", version.ref = "nexo" }
@@ -84,5 +85,5 @@ placeholderapi = { module = "me.clip:placeholderapi", version.ref = "placeholder
 kotlin = ["kotlin-stdlib", "kotlin-reflect", "kotlinx-coroutines-core", "kotlinx-coroutines-jdk9"]
 mysql = ["ormlite-core", "ormlite-jdbc", "hikaricp"]
 rtag = ["rtag-core", "rtag-item"]
-invui = ["invui-core", "invui-kotlin", "invui-access-r20", "invui-access-r21", "invui-access-r22", "invui-access-r23", "invui-access-r24"]
+invui = ["invui-core", "invui-kotlin", "invui-access-r20", "invui-access-r21", "invui-access-r22", "invui-access-r23", "invui-access-r24", "invui-access-r25"]
 itemproviders = ["nexo", "oraxen", "mythicmobs", "itemsadder", "craftengine-core", "craftengine-bukkit"]

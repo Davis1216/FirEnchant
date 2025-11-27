@@ -40,7 +40,7 @@ menu-setting:
       hooked-id: PAPER
       item-name: "<yellow>提示"
       lore:
-        - "§7你可以在这里将附魔书转换成魔咒之尘。"
+        - "<gray>你可以在这里将附魔书转换成魔咒之尘。"
       custom-model-data: 31001
       item-model: "minecraft:paper"
       click-actions:
@@ -52,11 +52,11 @@ menu-setting:
 # 玩家可以将附魔书放入提取菜单, 兑换成同等数量的目标物品.
 extract-item:
   # 提取的结果物品
-  result-hooked-plugin: "CraftEngine"
-  result-hooked-id: "enchantment:ashes_o_enchantment"
+  hooked-plugin: "CraftEngine"
+  hooked-id: "enchantment:ashes_o_enchantment"
   # 提取数量至少 >= 1 时, 触发的动作
   click-actions:
     - type: play_sound
       sound: "ui.button.click"
     - type: send_message
-      content: "天哪, 你竟然提取了一个魔咒之魂, 太几把牛波了!!!"
+      content: "天哪, 你竟然提取了一个魔咒之魂, 太牛波了!!!"

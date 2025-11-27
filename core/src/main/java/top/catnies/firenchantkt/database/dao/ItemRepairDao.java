@@ -1,12 +1,10 @@
-package top.catnies.firenchantkt.database.dao.sqlite;
+package top.catnies.firenchantkt.database.dao;
 
 import com.j256.ormlite.table.TableUtils;
 import org.bukkit.Bukkit;
 import top.catnies.firenchantkt.FirEnchantPlugin;
 import top.catnies.firenchantkt.api.ServiceContainer;
 import top.catnies.firenchantkt.database.FirConnectionManager;
-import top.catnies.firenchantkt.database.dao.AbstractDao;
-import top.catnies.firenchantkt.database.dao.ItemRepairData;
 import top.catnies.firenchantkt.database.entity.ItemRepairTable;
 import top.catnies.firenchantkt.util.MessageUtils;
 
@@ -16,15 +14,15 @@ import java.util.UUID;
 
 import static top.catnies.firenchantkt.language.MessageConstants.DATABASE_TABLE_CREATE_ERROR;
 
-public class SQLiteItemRepairData extends AbstractDao<ItemRepairTable, Integer> implements ItemRepairData {
+public class ItemRepairDao extends AbstractDao<ItemRepairTable, Integer> implements ItemRepairData {
 
-    private static SQLiteItemRepairData instance;
+    private static ItemRepairDao instance;
     private static final int CURRENT_VERSION = 1;
 
-    private SQLiteItemRepairData(){}
-    public static SQLiteItemRepairData getInstance() {
+    private ItemRepairDao(){}
+    public static ItemRepairDao getInstance() {
         if (instance == null) {
-            instance = new SQLiteItemRepairData();
+            instance = new ItemRepairDao();
             instance.createTable();
             ServiceContainer.INSTANCE.register(ItemRepairData.class, instance);
         }
@@ -45,7 +43,7 @@ public class SQLiteItemRepairData extends AbstractDao<ItemRepairTable, Integer> 
 
     @Override
     public void insert(ItemRepairTable repairData) {
-        update(repairData, true);
+        update(repairData);
     }
 
     @Override
@@ -64,7 +62,7 @@ public class SQLiteItemRepairData extends AbstractDao<ItemRepairTable, Integer> 
 
     @Override
     public List<ItemRepairTable> getAllList() {
-        return getList();
+        return super.getList();
     }
 
     @Override

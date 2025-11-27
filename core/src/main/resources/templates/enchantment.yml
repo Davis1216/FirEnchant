@@ -4,6 +4,7 @@ enchantment-version: 1
 # 附魔书物品设置
 hooked-plugin: "vanilla"
 hooked-id: "book"
+glint: false
 item-name: "&e<firenchant:enchantment> <firenchant:level_roman>"
 item-lore:
   - "<white>等级: <blue><firenchant:level>"

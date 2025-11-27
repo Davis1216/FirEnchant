@@ -28,7 +28,7 @@ class FirEnchantmentSetting(
         }
         var result = data.cacheItem!!.clone()
         result = injectCustomData(result)
-        result = replacePlaceholder(result)
+        result = renderItem(result)
         return result
     }
 
@@ -45,12 +45,15 @@ class FirEnchantmentSetting(
         }
     }
 
-    // 替换 Name 和 Lore 的 Placeholder
-    private fun replacePlaceholder(item: ItemStack): ItemStack {
+    // 渲染物品
+    private fun renderItem(item: ItemStack): ItemStack {
         val itemName = data.itemName.parsePlaceholderAPI().convertLegacyColorToMiniMessage().let { MiniMessage.miniMessage().deserialize(it, FirEnchantTag(this)) }
-        val itemLore = data.itemLore?.parsePlaceholderAPI()?.convertLegacyColorToMiniMessage()?.map { MiniMessage.miniMessage().deserialize(it, FirEnchantTag(this)) }
         item.setData(DataComponentTypes.ITEM_NAME, itemName)
+
+        val itemLore = data.itemLore?.parsePlaceholderAPI()?.convertLegacyColorToMiniMessage()?.map { MiniMessage.miniMessage().deserialize(it, FirEnchantTag(this)) }
         itemLore?.let { item.setData(DataComponentTypes.LORE, ItemLore.lore(it)) }
+
+        item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, data.glint)
         return item
     }
 

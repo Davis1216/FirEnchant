@@ -15,7 +15,7 @@ import net.minecraft.world.item.enchantment.EnchantmentInstance;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.EnchantingTableBlock;
 import org.bukkit.Location;
-import org.bukkit.World;
+import org.bukkit.Registry;import org.bukkit.World;
 import org.bukkit.craftbukkit.CraftWorld;
 import org.bukkit.craftbukkit.enchantments.CraftEnchantment;
 import org.bukkit.craftbukkit.entity.CraftPlayer;
@@ -23,7 +23,7 @@ import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.enchantments.Enchantment;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
-import top.catnies.firenchantkt.nms.NMSHandler;
+import top.catnies.firenchantkt.nms.EnchantmentRegistryType;import top.catnies.firenchantkt.nms.NMSHandler;
 
 import java.util.*;
 
@@ -58,26 +58,33 @@ public class NMSHandlerImpl implements NMSHandler {
     }
 
     @Override
-    public Set<Enchantment> getEnchantmentTableEnchantmentList(World world) {
-        Level nmsWorld = ((CraftWorld) world).getHandle();
+    public Set<Enchantment> getEnchantmentTableEnchantmentList(World world, EnchantmentRegistryType registryType) {
+        if (registryType == EnchantmentRegistryType.NMS) {
+            Level nmsWorld = ((CraftWorld) world).getHandle();
 
-        Optional<HolderSet.Named<net.minecraft.world.item.enchantment.Enchantment>> optional = nmsWorld.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(EnchantmentTags.IN_ENCHANTING_TABLE);
-        if (optional.isEmpty()) {
-            return new LinkedHashSet<>();
+            Optional<HolderSet.Named<net.minecraft.world.item.enchantment.Enchantment>> optional = nmsWorld.registryAccess().lookupOrThrow(Registries.ENCHANTMENT).get(EnchantmentTags.IN_ENCHANTING_TABLE);
+            if (optional.isEmpty()) {
+                return new LinkedHashSet<>();
+            }
+
+            Set<Enchantment> enchantmentList = new LinkedHashSet<>();
+            for (Holder<net.minecraft.world.item.enchantment.Enchantment> holder : optional.get()) {
+                enchantmentList.add(CraftEnchantment.minecraftHolderToBukkit(holder));
+            }
+
+            return enchantmentList;
         }
 
         Set<Enchantment> enchantmentList = new LinkedHashSet<>();
-        for (Holder<net.minecraft.world.item.enchantment.Enchantment> holder : optional.get()) {
-            enchantmentList.add(CraftEnchantment.minecraftHolderToBukkit(holder));
+        for (Enchantment enchantment : Registry.ENCHANTMENT) {
+            if (enchantment.isTreasure()) continue;
+            enchantmentList.add(enchantment);
         }
-
         return enchantmentList;
     }
 
-
-
     @Override
-    public List<Map<Enchantment, Integer>> getPlayerNextEnchantmentTableResultByItemStack(Player player, int bookShelfCount, ItemStack itemStack) {
+    public List<Map<Enchantment, Integer>> getPlayerNextEnchantmentTableResultByItemStack(Player player, int bookShelfCount, ItemStack itemStack, EnchantmentRegistryType registryType) {
         net.minecraft.world.entity.player.Player nmsPlayer = ((CraftPlayer) player).getHandle();
         net.minecraft.world.item.ItemStack nmsItem = CraftItemStack.asNMSCopy(itemStack);
 
@@ -95,7 +102,7 @@ public class NMSHandlerImpl implements NMSHandler {
         for (int slot = 0; slot < costs.length; slot++) {
             int cost = costs[slot];
 
-            Set<Enchantment> enchantmentList = getEnchantmentTableEnchantmentList(player.getWorld());
+            Set<Enchantment> enchantmentList = getEnchantmentTableEnchantmentList(player.getWorld(), registryType);
             List<EnchantmentInstance> enchantmentInstanceList = this.getEnchantmentList(nmsPlayer.enchantmentSeed, nmsItem, slot, cost, enchantmentList);
             if (enchantmentInstanceList.isEmpty()) continue;
 
@@ -142,7 +149,8 @@ public class NMSHandlerImpl implements NMSHandler {
 
                 // 计算出具体的附魔, 见 `net.minecraft.world.item.enchantment.EnchantmentHelper` 行 `581` .
                 for (int level1 = enchantment.getMaxLevel(); level1 >= enchantment.getMinLevel(); level1--) {
-                    if (level >= enchantment.getMinCost(level1) && level <= enchantment.getMaxCost(level1)) {
+//                    if (level >= enchantment.getMinCost(level1) && level <= enchantment.getMaxCost(level1)) {
+                    if (level >= enchantment.getMinCost(level1)) {
                         tempList.add(new EnchantmentInstance(holder, level1));
                         break;
                     }

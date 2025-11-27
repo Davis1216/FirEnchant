@@ -28,11 +28,19 @@ allprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")
     apply(plugin = "com.gradleup.shadow")
 
+    // 属性
     group = "top.catnies"
     version = rootProject.libs.versions.plugin.version.get()
-    kotlin.jvmToolchain(21)
     java.sourceCompatibility = JavaVersion.VERSION_21
     java.targetCompatibility = JavaVersion.VERSION_21
+
+    // Kotlin 配置
+    kotlin {
+        jvmToolchain(21)
+        compilerOptions {
+            freeCompilerArgs.add("-Xjvm-default=all")
+        }
+    }
 
     repositories {
         mavenCentral()
@@ -45,7 +53,7 @@ allprojects {
         maven("https://mvn.lumine.io/repository/maven-public/") // MythicMobs
         maven("https://repo.momirealms.net/releases/") // CustomCrops, CustomFishing, CraftEngine
         maven("https://repo.extendedclip.com/content/repositories/placeholderapi/") // PlaceholderAPI
-        maven("https://maven.chengzhimeow.cn/releases") // ChengZhiMeow
+        maven("https://repo-eo.catnies.top/mhdf") // ChengZhiMeow
         maven("https://repo.nightexpressdev.com/releases") // CoinsEngine
     }
 
@@ -105,9 +113,10 @@ tasks {
     runServer {
         dependsOn(shadowJar)
         dependsOn(jar)
-        minecraftVersion("1.21.7")
+        minecraftVersion("1.21.8")
         downloadPlugins {
             hangar("PlaceholderAPI", "2.11.6")
+            modrinth("rtag", "1.5.13")
         }
     }
 

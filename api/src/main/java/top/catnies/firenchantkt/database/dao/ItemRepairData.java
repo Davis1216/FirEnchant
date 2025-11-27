@@ -21,6 +21,11 @@ public interface ItemRepairData {
     void remove(ItemRepairTable repairData);
 
     /**
+     * 更新一个修复记录的值
+     */
+    void update(ItemRepairTable repairData, boolean async);
+
+    /**
      * 标记记录为已领取
      */
     void markAsReceived(int id);

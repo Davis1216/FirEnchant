@@ -5,14 +5,13 @@ import io.papermc.paper.registry.RegistryKey
 import org.bukkit.Bukkit
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.api.FirEnchantAPI
-import top.catnies.firenchantkt.engine.ConfigActionTemplate
+import top.catnies.firenchantkt.enchantment.EnchantmentSetting
 import top.catnies.firenchantkt.language.MessageConstants.RESOURCE_MENU_STRUCTURE_ERROR
-import top.catnies.firenchantkt.util.ConfigParser
-import top.catnies.firenchantkt.util.ItemUtils.nullOrAir
 import top.catnies.firenchantkt.util.MessageUtils.sendTranslatableComponent
-import top.catnies.firenchantkt.util.YamlUtils.getConfigurationSectionList
+import top.catnies.firenchantkt.util.resource_wrapper.MenuItemData
 import xyz.xenondevs.invui.gui.structure.Structure
 
+@Suppress("PropertyName")
 class ShowEnchantedBooksConfig private constructor():
     AbstractConfigFile("modules/show_enchantedbooks.yml")
 {
@@ -36,18 +35,10 @@ class ShowEnchantedBooksConfig private constructor():
     var MENU_STRUCTURE_ARRAY: Array<String> by ConfigProperty(fallbackMenuStructure)    // 菜单结构
     var MENU_CONTENT_SLOT: Char by ConfigProperty('I')                                  // 内容槽位
 
-    var MENU_PREPAGE_SLOT: Char by ConfigProperty('<')
-    var MENU_PREPAGE_SLOT_ITEM: Pair<ItemStack?, List<ConfigActionTemplate>>? by ConfigProperty(null)
-
-    var MENU_NEXTPAGE_SLOT: Char by ConfigProperty('>')
-    var MENU_NEXTPAGE_SLOT_ITEM: Pair<ItemStack?, List<ConfigActionTemplate>>? by ConfigProperty(null)
-
-    var MENU_CUSTOM_ITEMS: Map<Char, Pair<ItemStack?, List<ConfigActionTemplate>>> by ConfigProperty(emptyMap())
-
-    // 配置
-    var SHOW_ENCHANTEDBOOKS: List<ItemStack> by ConfigProperty(mutableListOf())     // 隐藏不显示的魔咒
-
-
+    var PREVIOUS_PAGE_ITEM: MenuItemData? = null
+    var NEXT_PAGE_ITEM: MenuItemData? = null
+    var MENU_CUSTOM_ITEMS: Set<MenuItemData> by ConfigProperty(mutableSetOf())
+    var ENCHANTED_BOOKS: List<EnchantmentSetting> by ConfigProperty(mutableListOf())     // 隐藏不显示的魔咒
 
     // 加载数据
     override fun loadConfig() {
@@ -57,62 +48,38 @@ class ShowEnchantedBooksConfig private constructor():
         } catch (exception: Exception) {
             Bukkit.getConsoleSender().sendTranslatableComponent(RESOURCE_MENU_STRUCTURE_ERROR, fileName) }
         MENU_CONTENT_SLOT = config().getString("menu-setting.content-slot", "I")?.first() ?: 'I'
-    }
-
-    // 等待注册表完成后延迟加载的部分
-    override fun loadLatePartConfig() {
-        MENU_PREPAGE_SLOT = config().getString("menu-setting.previous-page.slot", "P")?.first() ?: 'P'
-        MENU_PREPAGE_SLOT_ITEM = config().getConfigurationSection("menu-setting.previous-page")?.let { section ->
-            // 使用节点构建物品
-            val itemStack = ConfigParser.parseItemFromConfig(section, fileName, "menu-setting.previous-page")
-            // 获取动作节点, 解析动作
-            val actionList = section.getConfigurationSectionList("click-actions")
-            val actionTemplates = actionList.mapNotNull {
-                    actionNode -> ConfigParser.parseActionTemplate(actionNode, fileName, "menu-setting.previous-page.click-actions")
-            }
-            itemStack to actionTemplates
+        // 上一页物品
+        config().getConfigurationSection("menu-setting.previous-page")?.also { section ->
+            val slot = section.getString("slot")?.first() ?: 'P'
+            PREVIOUS_PAGE_ITEM = MenuItemData.getMenuItemDataBySection(section, slot, fileName)
         }
-
-        MENU_NEXTPAGE_SLOT = config().getString("menu-setting.next-page.slot", "N")?.first() ?: 'N'
-        MENU_NEXTPAGE_SLOT_ITEM = config().getConfigurationSection("menu-setting.next-page")?.let { section ->
-            // 使用节点构建物品
-            val itemStack = ConfigParser.parseItemFromConfig(section, fileName, "menu-setting.next-page")
-            // 获取动作节点, 解析动作
-            val actionList = section.getConfigurationSectionList("click-actions")
-            val actionTemplates = actionList.mapNotNull {
-                    actionNode -> ConfigParser.parseActionTemplate(actionNode, fileName, "menu-setting.next-page.click-actions")
-            }
-            itemStack to actionTemplates
+        // 下一页物品
+        config().getConfigurationSection("menu-setting.next-page")?.let { section ->
+            val slot = section.getString("slot")?.first() ?: 'N'
+            NEXT_PAGE_ITEM = MenuItemData.getMenuItemDataBySection(section, slot, fileName)
         }
-
-        // 读取配置文件, 尝试构建物品, 尝试构建点击逻辑链并缓存.
+        // 自定义物品
         config().getConfigurationSection("menu-setting.custom-items")?.let { customItemsSection ->
-            val customItems = mutableMapOf<Char, Pair<ItemStack?, List<ConfigActionTemplate>>>() // 创建结果列表
+            val customItems = mutableSetOf<MenuItemData>() // 创建结果列表
             customItemsSection.getKeys(false).forEach { itemSectionKey ->
                 // 解析物品节点如 'X', '?' 等节点
-                val itemSection = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
-                itemSection?.let { section ->
-                    // 使用节点构建物品
-                    val itemStack = ConfigParser.parseItemFromConfig(section, fileName, itemSectionKey)
-                    // 获取动作节点, 解析动作
-                    val actionList = section.getConfigurationSectionList("click-actions")
-                    val actionTemplates = actionList.mapNotNull { actionNode ->
-                        ConfigParser.parseActionTemplate(actionNode, fileName, itemSectionKey)
-                    }
-                    if (itemStack.nullOrAir()) return@forEach // 如果物品是空则跳过保存, 延迟处理是想要继续解析物品动作一类的并给予警告, 虽然物品无效整个节点都无效就是了.
+                val itemSections = customItemsSection.getConfigurationSection(itemSectionKey) // 这些 key 就是 如 'X', '?' 等
+                itemSections?.let { section ->
                     // 保存到结果列表里
-                    customItems[itemSectionKey.first()] = itemStack to actionTemplates
+                    customItems.add(
+                        MenuItemData.getMenuItemDataBySection(section, itemSectionKey.first(), fileName)
+                    )
                 }
             }
             MENU_CUSTOM_ITEMS = customItems
         }
-
+        // 其他配置
         val hideEnchantments = config().getStringList("hide-enchantments")
-        SHOW_ENCHANTEDBOOKS = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
-            .fold(mutableListOf<ItemStack>()) { acc, enchantment ->
+        ENCHANTED_BOOKS = RegistryAccess.registryAccess().getRegistry(RegistryKey.ENCHANTMENT)
+            .fold(mutableListOf()) { acc, enchantment ->
                 if (hideEnchantments.contains(enchantment.key.asString())) return@fold acc
                 val setting = FirEnchantAPI.getSettingsByData(enchantment.key, enchantment.maxLevel, 0, 0)
-                setting?.toItemStack()?.let { acc.add(it) }
+                setting?.let { acc.add(it) }
                 return@fold acc
             }
     }

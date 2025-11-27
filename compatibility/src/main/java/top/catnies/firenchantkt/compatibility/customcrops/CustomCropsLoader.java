@@ -1,23 +1,21 @@
 package top.catnies.firenchantkt.compatibility.customcrops;
 
 import net.momirealms.customcrops.api.BukkitCustomCropsPlugin;
+import org.bukkit.plugin.java.JavaPlugin;
+import top.catnies.firenchantkt.integration.HookPluginLoader;
 
-public class CustomCropsLoader {
+public class CustomCropsLoader implements HookPluginLoader {
 
-    private static CustomCropsLoader instance;
+    private final JavaPlugin plugin;
 
-    private CustomCropsLoader(){}
-    public static CustomCropsLoader getInstance() {
-        if (instance == null) {
-            instance = new CustomCropsLoader();
-            BukkitCustomCropsPlugin.getInstance().getIntegrationManager().registerItemProvider(new CustomCropsProvider());
-            BukkitCustomCropsPlugin.getInstance().reload();
-        }
-        return instance;
+    public CustomCropsLoader(JavaPlugin plugin){
+        this.plugin = plugin;
     }
 
-    private void reload() {
-
+    @Override
+    public void load() {
+        BukkitCustomCropsPlugin.getInstance().getIntegrationManager().registerItemProvider(new CustomCropsProvider());
+        BukkitCustomCropsPlugin.getInstance().reload();
     }
 
 }
