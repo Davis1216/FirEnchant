@@ -47,7 +47,7 @@ class SlotRuneImpl: SlotRune {
         event: PrepareAnvilEvent,
         context: AnvilContext
     ) {
-        if (getReamingSlots(context.viewer, context.firstItem) <= 0) return
+//        if (getReamingSlots(context.viewer, context.firstItem) <= 0) return
         val slotCount = EnchantmentSlotsUtil.getCurrentEnchantmentSlotCount(context.viewer, context.firstItem)
         val maxSlotCount = EnchantmentSlotsUtil.getMaxEnchantmentSlots(context.viewer, context.firstItem)
         val useAmount = getCanUseAmount(slotCount, maxSlotCount, context.secondItem.amount).takeIf { it > 0 } ?: return
