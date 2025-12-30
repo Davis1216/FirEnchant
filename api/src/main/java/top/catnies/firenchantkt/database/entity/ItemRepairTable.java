@@ -29,7 +29,7 @@ public class ItemRepairTable {
         this.duration = duration;
         this.startTime = System.currentTimeMillis();
     }
-    
+
     @DatabaseField(generatedId = true)
     private int id;
 
@@ -52,9 +52,10 @@ public class ItemRepairTable {
     @Setter
     @DatabaseField(canBeNull = false, defaultValue = "false", dataType = DataType.BOOLEAN)
     private boolean received = false;
-    
+
     /**
      * 检查修复是否已经完成
+     * 
      * @return 如果当前时间已超过修复完成时间则返回true
      */
     public boolean isCompleted() {
@@ -63,6 +64,7 @@ public class ItemRepairTable {
 
     /**
      * 获取剩余时间（毫秒）
+     * 
      * @return 剩余修复时间，如果已完成则返回0
      */
     public long getRemainingTime() {

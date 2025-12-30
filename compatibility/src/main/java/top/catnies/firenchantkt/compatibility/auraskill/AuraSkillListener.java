@@ -12,6 +12,5 @@ public class AuraSkillListener implements Listener {
     public void onEnchantingTableEnchant(EnchantItemEvent event) {
         AuraSkillsApi auraSkills = AuraSkillsApi.get();
         SkillsUser user = auraSkills.getUser(event.getPlayer().getUniqueId());
-        // TODO AuraSKill是怎么计算经验的?
     }
 }

@@ -4,26 +4,23 @@ import me.clip.placeholderapi.PlaceholderAPI
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import net.kyori.adventure.text.minimessage.translation.MiniMessageTranslator
 import top.catnies.firenchantkt.language.tags.PlaceholderTag
 import java.util.*
-
-
-object MessageTranslator : MiniMessageTranslator(
-    MiniMessage.builder().tags(
+import kotlin.collections.HashMap
+object MessageTranslator {
+    val miniMessage = MiniMessage.builder().tags(
         TagResolver.builder()
             .resolver(TagResolver.standard())
             .resolver(PlaceholderTag) // Papi标签解析器
             .build()
     ).build()
-) {
     val key = Key.key("firenchant:lang")
     val translations = mutableMapOf<String, MutableMap<Locale, String>>()
 
-    override fun name() = key
+    fun name() = key
 
     // 从存储中寻找语言值
-    override fun getMiniMessageString(key: String, locale: Locale): String? {
+    fun getMiniMessageString(key: String, locale: Locale): String? {
         var originText = translations[key]?.get(locale) ?: return null
         originText = PlaceholderAPI.setPlaceholders(null, originText) // 预处理一下
         return legacyToMiniMessage(legacyColorToMiniMessage(originText))

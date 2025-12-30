@@ -14,10 +14,7 @@ dependencies {
     implementation(project(":api"))
     implementation(project(":compatibility"))
     implementation(project(path = ":nms:v1_21_R1"))
-    implementation(project(path = ":nms:v1_21_R2"))
-    implementation(project(path = ":nms:v1_21_R3"))
-    implementation(project(path = ":nms:v1_21_R4"))
-    implementation(project(path = ":nms:v1_21_R5"))
+
 }
 
 
@@ -91,10 +88,7 @@ tasks {
 
     shadowJar {
         dependsOn(":nms:v1_21_R1:reobfJar")
-        dependsOn(":nms:v1_21_R2:reobfJar")
-        dependsOn(":nms:v1_21_R3:reobfJar")
-        dependsOn(":nms:v1_21_R4:reobfJar")
-        dependsOn(":nms:v1_21_R5:reobfJar")
+
         mergeServiceFiles()
 
         manifest.attributes("paperweight-mappings-namespace" to "mojang")

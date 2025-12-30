@@ -25,7 +25,7 @@ menu-setting:
       item-name: "<red>关闭"
       lore: []
       custom-model-data: 31001
-      item-model: "minecraft:paper"
+      material: PAPER
       click-actions:
         - type: send_message    # 发送消息
           content: "我草666"
@@ -42,7 +42,7 @@ menu-setting:
       lore:
         - "<gray>你可以在这里将附魔书转换成魔咒之尘。"
       custom-model-data: 31001
-      item-model: "minecraft:paper"
+      material: PAPER
       click-actions:
         - type: play_sound      # 点击音效
           sound: "ui.button.click"

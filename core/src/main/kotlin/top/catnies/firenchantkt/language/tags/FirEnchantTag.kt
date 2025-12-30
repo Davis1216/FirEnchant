@@ -30,7 +30,7 @@ class FirEnchantTag(
             "level_roman" -> setting.level.toRoman().renderToComponent()
             "max_level" -> setting.data.maxLevel.toString().renderToComponent()
             "max_level_roman" -> setting.data.maxLevel.toRoman().renderToComponent()
-            "enchantment" -> setting.data.originEnchantment.description()
+            "enchantment" -> Component.translatable(setting.data.originEnchantment.translationKey())
             "enchantment_key" -> setting.data.originEnchantment.key.asString().renderToComponent()
             "failure" -> setting.failure.toString().renderToComponent()
             "consumed_souls" -> setting.consumedSouls.toString().renderToComponent()

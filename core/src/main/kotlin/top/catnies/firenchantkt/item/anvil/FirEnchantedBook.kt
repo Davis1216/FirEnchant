@@ -1,6 +1,5 @@
 package top.catnies.firenchantkt.item.anvil
 
-import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Bukkit
 import org.bukkit.GameMode
 import org.bukkit.entity.Player
@@ -68,8 +67,8 @@ class FirEnchantedBook : EnchantedBook {
     override fun onPrepare(event: PrepareAnvilEvent, context: AnvilContext) {
         val firstSetting = FirEnchantmentSettingFactory.fromItemStack(context.firstItem)
         val setting = FirEnchantmentSettingFactory.fromItemStack(context.secondItem)!!
-        val repairCost = context.firstItem.getDataOrDefault(DataComponentTypes.REPAIR_COST, 0)!!
-        val repairCost2 = context.secondItem.getDataOrDefault(DataComponentTypes.REPAIR_COST, 0)!!
+        val repairCost = (context.firstItem.itemMeta as? org.bukkit.inventory.meta.Repairable)?.repairCost ?: 0
+        val repairCost2 = (context.secondItem.itemMeta as? org.bukkit.inventory.meta.Repairable)?.repairCost ?: 0
         val originEnchantment = setting.data.originEnchantment
 
         when {
@@ -108,7 +107,11 @@ class FirEnchantedBook : EnchantedBook {
                 val costExp = if (config.EB_USE_EXP_COST_MODE.equals("FIXED", true)) config.EB_USE_EXP_FIXED_VALUE
                 else getCost(setting, targetLevel, repairCost, repairCost2)
                 val resultItem = context.firstItem.clone().apply {
-                    setData(DataComponentTypes.REPAIR_COST, repairCost * 2 + 1)
+                    editMeta { 
+                        if (it is org.bukkit.inventory.meta.Repairable) {
+                            it.repairCost = repairCost * 2 + 1 
+                        }
+                    }
                     addEnchantment(originEnchantment, targetLevel)
                 }
 

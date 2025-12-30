@@ -7,7 +7,7 @@ runpaper = "2.3.1"
 paperweight = "2.0.0-beta.17"
 
 # Develop
-paper-api = "1.21.4-R0.1-SNAPSHOT"
+paper-api = "1.21-R0.1-SNAPSHOT"
 kotlin-stdlib = "2.1.21"
 kotlin-reflect = "2.1.21"
 kotlinx-coroutines = "1.8.1"

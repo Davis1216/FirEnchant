@@ -68,8 +68,12 @@ class ExtractSoulConfig private constructor():
         }
         // 构建结果物品
         config().getConfigurationSection("extract-item")?.let { section ->
-            MENU_RESULT_ITEM = ItemStackData(section).apply { verifyItem(fileName, section.currentPath!!) }
+            val itemData = ItemStackData(section)
+            if (itemData.verifyItem(fileName, section.currentPath!!)) {
+                MENU_RESULT_ITEM = itemData
+            }
         }
+
         // 构建结果物品点击事件
         config().getConfigurationSectionList("extract-item.click-actions").let { actionList ->
             MENU_RESULT_ITEM_CLICK_ACTIONS = actionList

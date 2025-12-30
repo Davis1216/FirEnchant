@@ -1,6 +1,5 @@
 package top.catnies.firenchantkt.item.enchantingtable
 
-import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.Bukkit
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.FirEnchantPlugin
@@ -47,7 +46,7 @@ class FirOriginalBook: OriginalBook {
 
         // 获取附魔力
         val enchantable = (if (originalBookData.enchantable >= 0) originalBookData.enchantable
-        else itemStack.getData(DataComponentTypes.ENCHANTABLE)?.value()) ?: return
+        else null) ?: return
 
         // 获取这个配置的可附魔列表
         val enchantments = originalBookData.enchantmentList

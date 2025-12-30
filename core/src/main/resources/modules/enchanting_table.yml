@@ -25,7 +25,7 @@ menu-setting:
     - "# # # b b b b b B"
     - "# X # c c c c c C"
   # 放入物品的槽位
-  input-slot: 'I'
+  input-slot: "I"
 
   # 附魔台的3个栏位, 在亮起和材料不足时, 需要显示一些提示信息; 需要分别为这3个栏位的2个情况均设置不同的描述
   # 这些物品的原型均使用的是结果所对应的附魔书物品, 当然你可以覆盖各种属性, 包括物品名称, 描述等;
@@ -36,7 +36,7 @@ menu-setting:
   # {enchantable} - 放入物品设置的附魔力
   show-enchantment-slot:
     line-1: # 当第一行栏位亮起时, 行占位物品的信息
-      slot: 'a'
+      slot: "a"
       online:
         lore:
           - "{original_lore}" # 带有 {original_lore} 的行, 整一行会被替换成结果附魔书的lore;
@@ -46,7 +46,7 @@ menu-setting:
           - " "
           - "<!i><#a5acb8>→ 点击进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
       offline:
         item-name: "<red>材料不足"
         lore:
@@ -57,9 +57,9 @@ menu-setting:
           - " "
           - "<!i><red>→ 无法进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
     line-2: # 当第二行栏位亮起时, 行占位物品的信息
-      slot: 'b'
+      slot: "b"
       online:
         lore:
           - "{original_lore}"
@@ -69,7 +69,7 @@ menu-setting:
           - " "
           - "<!i><#a5acb8>→ 点击进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
       offline:
         item-name: "<red>材料不足"
         lore:
@@ -80,9 +80,9 @@ menu-setting:
           - " "
           - "<!i><red>→ 无法进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
     line-3: # 当第三行栏位亮起时, 行占位物品的信息
-      slot: 'c'
+      slot: "c"
       online:
         lore:
           - "{original_lore}"
@@ -92,7 +92,7 @@ menu-setting:
           - " "
           - "<!i><#a5acb8>→ 点击进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
       offline:
         item-name: "<red>材料不足"
         lore:
@@ -103,10 +103,10 @@ menu-setting:
           - " "
           - "<!i><red>→ 无法进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
     # 当然除了line部分, 还有最后的附魔书展示部分, 你也可以自定义
     line-1-book: # 当第一行栏位亮起时, 附魔书位置的物品的显示信息
-      slot: 'A'
+      slot: "A"
       online:
         lore:
           - "{original_lore}" # 带有 {original_lore} 的行, 整一行会被替换成结果附魔书的lore;
@@ -125,9 +125,9 @@ menu-setting:
           - " "
           - "<!i><red>→ 无法进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
     line-2-book: # 当第二行栏位亮起时, 行占位物品的信息
-      slot: 'B'
+      slot: "B"
       online:
         lore:
           - "{original_lore}"
@@ -146,9 +146,9 @@ menu-setting:
           - " "
           - "<!i><red>→ 无法进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
     line-3-book: # 当第三行栏位亮起时, 行占位物品的信息
-      slot: 'C'
+      slot: "C"
       online:
         lore:
           - "{original_lore}"
@@ -167,23 +167,23 @@ menu-setting:
           - " "
           - "<!i><red>→ 无法进行附魔"
         custom-model-data: 31001
-        item-model: "minecraft:paper"
+        material: PAPER
 
   # 其他自定义槽位, 请勿和上方的槽位冲突
   custom-items:
-    'X':
+    "X":
       hooked-plugin: "Vanilla"
       hooked-id: PAPER
       item-name: "<gray>查看所有魔咒"
       lore: []
       custom-model-data: 31001
       click-actions:
-        - type: play_sound      # 点击音效
+        - type: play_sound # 点击音效
           sound: "ui.button.click"
         - type: execute_command
           command: "firenchant openmenu enchanted-books-list %player_name%"
           sudo: false
-    '?':
+    "?":
       hooked-plugin: "Vanilla"
       hooked-id: PAPER
       item-name: "<yellow>提示"
@@ -191,9 +191,8 @@ menu-setting:
         - "§7您可以把可附魔的物品放入槽位内，然后选择进行附魔。"
       custom-model-data: 31001
       click-actions:
-        - type: play_sound      # 点击音效
+        - type: play_sound # 点击音效
           sound: "ui.button.click"
-
 
 # 花费设置, 玩家附魔当然是需要花费一些道具;
 # 为了尽可能的自由一些, 你需要设置每一个栏位可进行附魔的条件和动作;
@@ -270,16 +269,14 @@ enchant-cost:
         hooked-id: lapis_lazuli
         count: 3
 
-
 # 重生之书, 当放入附魔台后, 会立刻消耗一件物品, 然后刷新玩家的附魔种子;
 renewal-book:
   enable: true
   hooked-plugin: "CraftEngine"
   hooked-id: "enchantment:tome_of_renewal"
-  actions:                      # 当物品使用成功后, 执行的操作
+  actions: # 当物品使用成功后, 执行的操作
     - type: play_sound
       sound: "block.enchantment_table.use"
-
 
 # 反转之书, 当放入附魔台后, 会立刻消耗一件物品, 然后将玩家的附魔种子倒回到上一次附魔时的种子;
 # 注意, 使用重生之书刷掉的种子不会记录;
@@ -287,6 +284,6 @@ reversal-book:
   enable: true
   hooked-plugin: "CraftEngine"
   hooked-id: "enchantment:tome_of_reversal"
-  actions:                      # 当物品使用成功后, 执行的操作
+  actions: # 当物品使用成功后, 执行的操作
     - type: play_sound
       sound: "block.enchantment_table.use"

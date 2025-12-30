@@ -1,8 +1,6 @@
 package top.catnies.firenchantkt.enchantment
 
 import com.saicone.rtag.RtagItem
-import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ItemLore
 import net.kyori.adventure.text.minimessage.MiniMessage
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.language.tags.FirEnchantTag
@@ -35,7 +33,9 @@ class FirEnchantmentSetting(
     // 注入自定义数据
     @Suppress("UnstableApiUsage")
     private fun injectCustomData(item: ItemStack): ItemStack {
-        item.setData(DataComponentTypes.MAX_STACK_SIZE, 1)
+        item.editMeta {
+            it.setMaxStackSize(1)
+        }
         RtagItem.of(item). let { tag ->
             tag.set(data.key.asString(), "FirEnchant", "Enchantment")
             tag.set(level, "FirEnchant", "Level")
@@ -48,12 +48,16 @@ class FirEnchantmentSetting(
     // 渲染物品
     private fun renderItem(item: ItemStack): ItemStack {
         val itemName = data.itemName.parsePlaceholderAPI().convertLegacyColorToMiniMessage().let { MiniMessage.miniMessage().deserialize(it, FirEnchantTag(this)) }
-        item.setData(DataComponentTypes.ITEM_NAME, itemName)
+        item.editMeta {
+            it.displayName(itemName)
 
-        val itemLore = data.itemLore?.parsePlaceholderAPI()?.convertLegacyColorToMiniMessage()?.map { MiniMessage.miniMessage().deserialize(it, FirEnchantTag(this)) }
-        itemLore?.let { item.setData(DataComponentTypes.LORE, ItemLore.lore(it)) }
+            val itemLore = data.itemLore?.parsePlaceholderAPI()?.convertLegacyColorToMiniMessage()?.map { line -> MiniMessage.miniMessage().deserialize(line, FirEnchantTag(this)) }
+            if (itemLore != null) {
+                it.lore(itemLore)
+            }
 
-        item.setData(DataComponentTypes.ENCHANTMENT_GLINT_OVERRIDE, data.glint)
+            it.setEnchantmentGlintOverride(data.glint)
+        }
         return item
     }
 

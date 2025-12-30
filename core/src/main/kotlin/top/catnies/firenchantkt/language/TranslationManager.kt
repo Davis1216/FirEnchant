@@ -1,6 +1,5 @@
 package top.catnies.firenchantkt.language
 
-import net.kyori.adventure.translation.GlobalTranslator
 import org.bukkit.configuration.file.YamlConfiguration
 import top.catnies.firenchantkt.FirEnchantPlugin
 import top.catnies.firenchantkt.util.ResourceCopyUtils
@@ -59,6 +58,6 @@ class TranslationManager private constructor(){
             }
 
         // 注册到全局翻译器
-        GlobalTranslator.translator().addSource(translator)
+        // GlobalTranslator.translator().addSource(translator)
     }
 }

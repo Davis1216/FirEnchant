@@ -1,7 +1,5 @@
 package top.catnies.firenchantkt.gui.repairtable
 
-import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ItemLore
 import org.bukkit.Bukkit
 import org.bukkit.Material
 import org.bukkit.entity.Player
@@ -286,15 +284,13 @@ class FirRepairTableMenu(
         val brokenItem = itemRepairTable.brokenItem
         val repairedItem = itemRepairTable.repairedItem
         val itemProvider = ItemProvider { _ ->
-            val resultLore = brokenItem.getData(DataComponentTypes.LORE)?.lines()?.toMutableList()
+            val resultLore = brokenItem.itemMeta?.lore()?.toMutableList()
             // 已修复
             if (itemRepairTable.isCompleted) {
                 val components = completedAdditionLores.map { line -> line.renderToComponent(player) }
-                val lore = ItemLore.lore().let { builder ->
-                    resultLore?.let { builder.addLines(it) }
-                    builder.addLines(components).build()
-                }
-                repairedItem.clone().apply { setData(DataComponentTypes.LORE, lore) }
+                val lore = resultLore ?: mutableListOf()
+                lore.addAll(components)
+                repairedItem.clone().apply { editMeta { it.lore(lore) } }
             }
             // 未修复
             else {
@@ -304,11 +300,9 @@ class FirRepairTableMenu(
                         mapOf("cost_time" to "${itemRepairTable.getRemainingTime() / 1000}")
                     )
                 }
-                val lore = ItemLore.lore().let { builder ->
-                    resultLore?.let { builder.addLines(it) }
-                    builder.addLines(components).build()
-                }
-                brokenItem.clone().apply { setData(DataComponentTypes.LORE, lore) }
+                val lore = resultLore ?: mutableListOf()
+                lore.addAll(components)
+                brokenItem.clone().apply { editMeta { it.lore(lore) } }
             }
         }
 

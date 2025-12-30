@@ -16,15 +16,15 @@ menu-setting:
     - "# # # C C C # # #"
     - "# P O O O O O N #"
   # 放入破损物品的槽位
-  input-slot: 'I'
+  input-slot: "I"
   # 输出队列槽位
   output-array:
-    slot: 'O'
+    slot: "O"
     # 修复队列最大长度, 3代表玩家可以同时修复3件装备.
-    array-max-size: 3   # 默认长度
+    array-max-size: 3 # 默认长度
     array-size-rule:
-      - permission: firenchant.vip  # 玩家拥有权限
-        size: 6                     # 如果玩家有权限, 那么队列长度就为6 ,这样玩家可同时修复6件物品.
+      - permission: firenchant.vip # 玩家拥有权限
+        size: 6 # 如果玩家有权限, 那么队列长度就为6 ,这样玩家可同时修复6件物品.
     # 队列物品不断刷新的时间
     update-time: 20
     # 附加在队列物品上的Lore
@@ -39,7 +39,7 @@ menu-setting:
   # 确认修复按钮
   # 当放入可修复物品在菜单时, 按钮亮起时显示的内容
   repair-bottom:
-    slot: 'C'
+    slot: "C"
     hooked-plugin: "Vanilla"
     hooked-id: PAPER
     custom-model-data: 31001
@@ -50,54 +50,52 @@ menu-setting:
       - "§7 "
       - "<#a5acb8>→ 点击进行修复"
     click-actions: # 点击后会进行装备修复, 你可以设置额外的行为, 但是修复行为不可取消.
-      - type: play_sound      # 点击音效
+      - type: play_sound # 点击音效
         sound: "ui.button.click"
   # 队列上一页
   previous-page:
-    slot: 'P'
+    slot: "P"
     hooked-plugin: "Vanilla"
     hooked-id: PAPER
     custom-model-data: 31002
     item-name: "<red>上一页"
     click-actions: # 点击后会进行翻页, 你可以设置额外的行为, 但是翻页行为不可取消.
-      - type: play_sound      # 点击音效
+      - type: play_sound # 点击音效
         sound: "ui.button.click"
   # 队列下一页
   next-page:
-    slot: 'N'
+    slot: "N"
     hooked-plugin: "Vanilla"
     hooked-id: PAPER
     custom-model-data: 31003
     item-name: "<red>下一页"
     click-actions: # 点击后会进行翻页, 你可以设置额外的行为, 但是翻页行为不可取消.
-      - type: play_sound      # 点击音效
+      - type: play_sound # 点击音效
         sound: "ui.button.click"
   # 其他自定义槽位, 请勿和上方的槽位冲突
   custom-items:
-    'X':
+    "X":
       hooked-plugin: "Vanilla"
       hooked-id: PAPER
       item-name: "<red>关闭"
       lore: []
       custom-model-data: 31001
-      item-model: "minecraft:paper"
+      material: PAPER
       click-actions:
-        - type: play_sound      # 点击音效
+        - type: play_sound # 点击音效
           sound: "ui.button.click"
         - type: close_inventory # 关闭菜单
-    '?':
+    "?":
       hooked-plugin: "Vanilla"
       hooked-id: PAPER
       item-name: "<yellow>提示"
       lore:
         - "§7您可以把损坏的物品放入槽位内，然后选择修复方式。"
       custom-model-data: 31001
-      item-model: "minecraft:paper"
+      material: PAPER
       click-actions:
-        - type: play_sound      # 点击音效
+        - type: play_sound # 点击音效
           sound: "ui.button.click"
-
-
 
 # 物品放入修复桌修复, 总是要付出一些代价的嘛;
 # 放入不同的物品, 需要花费不同的时间, 这个规则需要指定.
@@ -130,7 +128,7 @@ repair-rule:
   quick-repair:
     # 当玩家使用可减少修复时间的道具时, 还可以一些额外的操作, 例如播放音效, 发送消息等.
     trigger-action:
-      - type: play_sound      # 点击音效
+      - type: play_sound # 点击音效
         sound: "ui.button.click"
 
   # 优惠规则, 你可以为VIP或符合条件的玩家设置折扣;
@@ -138,11 +136,9 @@ repair-rule:
   magnification-rule:
     # 权限组，可以加若干个
     - permission: firenchant.svip # 玩家拥有权限
-      magnification: 0.5     # 时间折扣, 如果玩家有权限，那么修复物品的时间只需要设定的50%.
+      magnification: 0.5 # 时间折扣, 如果玩家有权限，那么修复物品的时间只需要设定的50%.
     - permission: firenchant.vip
       magnification: 0.7
-
-
 
 # 物品破损后, 物品的模型会发生变更.你需要指定物品破损之后的模型应该长什么样.
 # 为了一定的兼容性, 插件选择了物品破损时将原物品进行序列化, 存入wrapper物品内, 然后将原物品的 Name 和 Lore 转移到Wrapper物品上.
@@ -154,9 +150,9 @@ broken-item-model:
     hooked-id: "enchantment:broken_sword"
   # 这里会按照物品的ID进行捕捉, 找到第一个符合条件的模型设置. 所以如果有需要特殊指定破损状态的物品, 请将其写的尽可能靠前.
   matches:
-    - match-item:   # 捕捉到的物品ID
+    - match-item: # 捕捉到的物品ID
         - "CraftEngine|default:topaz_sword" # 捕捉CE的物品.
-        - "wooden_sword"  # 捕捉原版的物品
+        - "wooden_sword" # 捕捉原版的物品
         - "stone_sword"
         - "golden_sword"
         - "iron_sword"

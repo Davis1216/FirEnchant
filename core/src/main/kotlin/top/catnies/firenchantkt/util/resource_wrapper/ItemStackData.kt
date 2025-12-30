@@ -1,7 +1,5 @@
 package top.catnies.firenchantkt.util.resource_wrapper
 
-import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ItemLore
 import net.kyori.adventure.key.Key
 import net.kyori.adventure.text.Component
 import org.bukkit.Bukkit
@@ -53,8 +51,10 @@ class ItemStackData(
 
     // 获取渲染后的物品
     fun renderItem(ptr: Player? = null, args: Map<String, String> = mutableMapOf()): ItemStack {
+        if (!::baseItem.isInitialized) return ItemStack(org.bukkit.Material.AIR)
         return render.renderItem(baseItem.clone(), args = args)
     }
+
 
     // 不走缓存获取基础物品
     fun renderItemNoCache(ptr: Player? = null, args: Map<String, String> = mutableMapOf()): ItemStack {
@@ -72,7 +72,7 @@ class ItemStackData(
 class ItemRender(
     var itemName: String? = null,
     var lore: List<String>? = null,
-    var itemModel: String? = null,
+    var material: String? = null,
     var customModelData: Int? = null,
     var amount: Int = 1,
     var damage: Int = 0
@@ -81,7 +81,7 @@ class ItemRender(
     constructor(section: ConfigurationSection) : this (
         itemName = section.getString("item-name"),
         lore = section.getStringList("lore"),
-        itemModel = section.getString("item-model"),
+        material = section.getString("material"),
         customModelData = section.getInt("custom-model-data"),
         amount = section.getInt("amount", 1),
         damage = section.getInt("damage", 0)
@@ -89,39 +89,48 @@ class ItemRender(
 
     // 渲染物品
     fun renderItem(item: ItemStack, ptr: Player? = null, args: Map<String, String> = mutableMapOf()): ItemStack {
-        // 物品名
-        itemName?.let {
-            val renderedComponent = it.renderToComponent(ptr, args)
-                .replaceText { builder ->
-                    builder
-                        .matchLiteral("{original_name}")
-                        .replacement(item.getData(DataComponentTypes.ITEM_NAME))
-                }
-            item.setData(DataComponentTypes.ITEM_NAME, renderedComponent)
-        }
-        // 物品描述
-        lore?.let {
-            if (it.isEmpty()) return@let // 空则返回
-            val originalLore = item.getData(DataComponentTypes.LORE)?.lines()
-            val resultLore = it.fold(mutableListOf<Component>()) { acc, line ->
-                if (line.contains("{original_lore}") && originalLore != null) acc.addAll(originalLore)
-                else acc.add(line.renderToComponent(ptr, args))
-                acc
+        item.editMeta { meta ->
+            // 物品名
+            itemName?.let {
+                val renderedComponent = it.renderToComponent(ptr, args)
+                    .replaceText { builder ->
+                        builder
+                            .matchLiteral("{original_name}")
+                            .replacement(meta.displayName())
+                    }
+                meta.displayName(renderedComponent)
             }
-            item.setData(DataComponentTypes.LORE, ItemLore.lore(resultLore))
+            // 物品描述
+            lore?.let {
+                if (it.isEmpty()) return@let // 空则返回
+                val originalLore = meta.lore()
+                val resultLore = it.fold(mutableListOf<Component>()) { acc, line ->
+                    if (line.contains("{original_lore}") && originalLore != null) acc.addAll(originalLore)
+                    else acc.add(line.renderToComponent(ptr, args))
+                    acc
+                }
+                meta.lore(resultLore)
+            }
+            // 物品材质
+            material?.let { matName ->
+                org.bukkit.Material.matchMaterial(matName)?.let { mat ->
+                    item.type = mat
+                }
+            }
+            // 物品模型数据
+            customModelData?.let {
+                meta.setCustomModelData(it)
+            }
+            // 物品损伤
+            damage.takeIf { it > 0 }?.let { 
+                 if (meta is org.bukkit.inventory.meta.Damageable) {
+                     meta.damage = it
+                 }
+            }
         }
-        // 物品模型
-        itemModel?.let {
-            item.setData(DataComponentTypes.ITEM_MODEL, Key.key(it))
-        }
-        // 物品模型数据
-        customModelData?.let {
-            item.editMeta { meta -> meta.setCustomModelData(it) }
-        }
+        
         // 物品数量
         amount.takeIf { it > 0 }?.let { item.amount = it }
-        // 物品损伤
-        damage.takeIf { it > 0 }?.let { item.setData(DataComponentTypes.DAMAGE, it) }
 
         return item
     }

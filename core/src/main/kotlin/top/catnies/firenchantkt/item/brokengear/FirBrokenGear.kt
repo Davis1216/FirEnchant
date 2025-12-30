@@ -1,7 +1,6 @@
 package top.catnies.firenchantkt.item.brokengear
 
 import com.saicone.rtag.RtagItem
-import io.papermc.paper.datacomponent.DataComponentTypes
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.api.ServiceContainer
 import top.catnies.firenchantkt.config.RepairTableConfig
@@ -38,12 +37,13 @@ class FirBrokenGear: BrokenGear {
         RtagItem.edit(wrapper) { it.set(bytes, "FirEnchant", "FixType") }
 
         // 迁移原物品的数据
-        item.getData(DataComponentTypes.ITEM_NAME)?.let { wrapper.setData(DataComponentTypes.ITEM_NAME, it) }
-        item.getData(DataComponentTypes.LORE)?.let { wrapper.setData(DataComponentTypes.LORE, it) }
-        item.getData(DataComponentTypes.ENCHANTMENTS)?.let { wrapper.setData(DataComponentTypes.ENCHANTMENTS, it) }
+        item.itemMeta?.displayName()?.let { wrapper.editMeta { meta -> meta.displayName(it) } }
+        item.itemMeta?.lore()?.let { wrapper.editMeta { meta -> meta.lore(it) } }
+        item.enchantments.forEach { (ench, level) -> wrapper.addUnsafeEnchantment(ench, level) }
+
 
         // 不可堆叠喵
-        return wrapper.apply { setData(DataComponentTypes.MAX_STACK_SIZE, 1) }
+        return wrapper.apply { editMeta { it.setMaxStackSize(1) } }
     }
 
     override fun repairBrokenGear(item: ItemStack?): ItemStack? {

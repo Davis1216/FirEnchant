@@ -46,7 +46,7 @@ menu-setting:
       item-name: "<red>关闭"
       lore: []
       custom-model-data: 31001
-      item-model: "minecraft:paper"
+      material: PAPER
       click-actions:
         - type: play_sound
           sound: "ui.button.click"
@@ -58,7 +58,7 @@ menu-setting:
       lore:
         - "§7你可以在这里查看服务器内所有的附魔书。"
       custom-model-data: 31001
-      item-model: "minecraft:paper"
+      material: PAPER
       click-actions:
         - type: play_sound
           sound: "ui.button.click"

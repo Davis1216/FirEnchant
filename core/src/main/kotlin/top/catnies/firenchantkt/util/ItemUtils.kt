@@ -1,8 +1,6 @@
 package top.catnies.firenchantkt.util
 
 import com.saicone.rtag.item.ItemTagStream
-import io.papermc.paper.datacomponent.DataComponentTypes
-import io.papermc.paper.datacomponent.item.ItemLore
 import org.bukkit.enchantments.Enchantment
 import org.bukkit.inventory.ItemStack
 import top.catnies.firenchantkt.util.MessageUtils.replacePlaceholders
@@ -45,12 +43,20 @@ object ItemUtils {
 
     // 增加物品的 RepairCost
     fun ItemStack.addRepairCost() {
-        val cost = this.getDataOrDefault(DataComponentTypes.REPAIR_COST, 0)!!
-        this.setData(DataComponentTypes.REPAIR_COST, cost * 2 + 1)
+        this.editMeta {
+            if (it is org.bukkit.inventory.meta.Repairable) {
+                val cost = it.repairCost
+                it.repairCost = cost * 2 + 1
+            }
+        }
     }
     fun ItemStack.addRepairCost(count: Int) {
-        val cost = this.getDataOrDefault(DataComponentTypes.REPAIR_COST, 0)!!
-        this.setData(DataComponentTypes.REPAIR_COST, cost + count)
+        this.editMeta {
+            if (it is org.bukkit.inventory.meta.Repairable) {
+                val cost = it.repairCost
+                it.repairCost = cost + count
+            }
+        }
     }
 
     // 获取物品上所有的魔咒等级和
@@ -66,22 +72,20 @@ object ItemUtils {
     // 将物品的 Name 和 Lore 中的占位符 ${placeholder} 替换成实际的值
     // @param args 占位符映射表，例如 mapOf("currentPage" to "1") 会将 ${currentPage} 替换为 1
     fun ItemStack.replacePlaceholder(args: Map<String, String>) {
-        // 处理物品名称
-        getData(DataComponentTypes.ITEM_NAME)?.let { nameComponent ->
-            val replacedName = nameComponent.replacePlaceholders(args)
-            setData(DataComponentTypes.ITEM_NAME, replacedName)
-        }
-
-        // 处理物品 Lore
-        getData(DataComponentTypes.LORE)?.let { itemLore ->
-            val loreBuilder = ItemLore.lore()
-
-            itemLore.lines().forEach { line ->
-                val replacedLine = line.replacePlaceholders(args)
-                loreBuilder.addLine(replacedLine)
+        this.editMeta { meta ->
+            // 处理物品名称
+            meta.displayName()?.let { nameComponent ->
+                val replacedName = nameComponent.replacePlaceholders(args)
+                meta.displayName(replacedName)
             }
 
-            setData(DataComponentTypes.LORE, loreBuilder.build())
+            // 处理物品 Lore
+            meta.lore()?.let { itemLore ->
+                val newLore = itemLore.map { line ->
+                    line.replacePlaceholders(args)
+                }
+                meta.lore(newLore)
+            }
         }
     }
 

@@ -73,7 +73,7 @@ object GiveEnchantedBookCommand : AbstractCommand() {
             player.sendTranslatableComponent(
                 COMMAND_GIVE_BOOK_ENCHANTMENT_SUCCESS_RECEIVE,
                 context.source.sender.name,
-                enchantment.description(),
+                net.kyori.adventure.text.Component.translatable(enchantment.translationKey()),
                 level.toString(),
                 failure.toString(),
                 consumedSouls.toString()
@@ -83,7 +83,7 @@ object GiveEnchantedBookCommand : AbstractCommand() {
         context.source.sender.sendTranslatableComponent(
             COMMAND_GIVE_BOOK_ENCHANTMENT_SUCCESS_EXECUTE,
             receivers,
-            enchantment.description(),
+            net.kyori.adventure.text.Component.translatable(enchantment.translationKey()),
             level.toString(),
             failure.toString(),
             consumedSouls.toString()

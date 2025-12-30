@@ -7,7 +7,6 @@ import net.kyori.adventure.text.Component
 import net.kyori.adventure.text.TextComponent
 import net.kyori.adventure.text.minimessage.MiniMessage
 import net.kyori.adventure.text.minimessage.tag.resolver.TagResolver
-import net.kyori.adventure.text.minimessage.translation.Argument
 import org.bukkit.entity.Player
 import top.catnies.firenchantkt.language.MessageTranslator
 import top.catnies.firenchantkt.language.tags.PlaceholderTag
@@ -30,23 +29,39 @@ object MessageUtils {
      * @param ptr 上下文解析目标
      * @param args 消息参数
      */
+    /**
+     * 发送一个可翻译组件给目标.
+     *
+     * @param key 翻译键
+     * @param ptr 上下文解析目标
+     * @param args 消息参数
+     */
     fun Audience.sendTranslatableComponent(key: String, ptr: Pointered, vararg args: Any) {
-        val component = Component.translatable(
-            key,
-            Argument.target(ptr),
-            *args.map {
-                when (it) {
-                    is String -> Component.text(it)
-                    is Component -> it
-                    else -> Component.text(it.toString())
-                }
-            }.toTypedArray()
-        )
+        val locale = (ptr.get(net.kyori.adventure.identity.Identity.LOCALE) as? java.util.Locale) ?: java.util.Locale.US
+        val rawFormat = MessageTranslator.getMiniMessageString(key, locale)
+        
+        if (rawFormat == null) {
+            this.sendMessage(Component.text(key))
+            return
+        }
+        
+        // Simple MessageFormat replacement if args exist
+        val formatted = if (args.isNotEmpty()) {
+             val formattedArgs = args.map { 
+                 if (it is Component) miniMessage.serialize(it) 
+                 else it 
+             }.toTypedArray()
+             java.text.MessageFormat(rawFormat, locale).format(formattedArgs)
+        } else {
+             rawFormat
+        }
+        
+        val component = miniMessage.deserialize(formatted)
         this.sendMessage(component)
     }
 
     fun Audience.sendTranslatableComponent(key: String, vararg args: Any) {
-        this.sendTranslatableComponent(key, this, *args)
+        this.sendTranslatableComponent(key, this as Pointered, *args)
     }
 
 
